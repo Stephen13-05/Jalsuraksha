@@ -1,0 +1,10 @@
+[
+  {"id":"assam_kamrup_sonapur","name":"Sonapur","district":"Kamrup Metropolitan","state":"Assam","lat":26.145,"lon":91.914},
+  {"id":"assam_kamrup_amingaon","name":"Amingaon","district":"Kamrup Metropolitan","state":"Assam","lat":26.198,"lon":91.691},
+  {"id":"assam_nagaon_doboka","name":"Doboka","district":"Nagaon","state":"Assam","lat":26.105,"lon":92.862},
+  {"id":"assam_nagaon_hojai","name":"Hojai","district":"Nagaon","state":"Assam","lat":26.002,"lon":92.866},
+  {"id":"manipur_imphal_w_lamphel","name":"Lamphel","district":"Imphal West","state":"Manipur","lat":24.818,"lon":93.927},
+  {"id":"manipur_imphal_w_langjing","name":"Langjing","district":"Imphal West","state":"Manipur","lat":24.791,"lon":93.903},
+  {"id":"manipur_imphal_e_andro","name":"Andro","district":"Imphal East","state":"Manipur","lat":24.737,"lon":94.068},
+  {"id":"mizoram_aizawl_selesih","name":"Selesih","district":"Aizawl","state":"Mizoram","lat":23.776,"lon":92.703}
+]
