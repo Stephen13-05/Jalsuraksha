@@ -7,6 +7,7 @@ import 'frontend/ashaworkers/signup.dart';
 import 'l10n/app_localizations.dart';
 import 'locale/locale_controller.dart';
 import 'firebase_options.dart';
+import 'frontend/common/users.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -115,7 +116,7 @@ class MyApp extends StatelessWidget {
             ),
             dividerColor: const Color(0xFFE5E7EB),
           ),
-          home: const _SplashScreen(),
+          home: const UserSelectionPage(),
         );
       },
     );
