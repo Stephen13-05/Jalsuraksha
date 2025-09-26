@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:app/frontend/Localclincs/Login.dart';
 import 'package:app/locale/locale_controller.dart';
 import 'package:app/l10n/app_localizations.dart';
 import 'package:file_picker/file_picker.dart';
+
 
 class ClinicSignUpPage extends StatefulWidget {
   const ClinicSignUpPage({super.key});
@@ -495,7 +497,13 @@ class _ClinicSignUpPageState extends State<ClinicSignUpPage> {
                                 style: const TextStyle(fontSize: 14, color: Colors.black87),
                               ),
                               GestureDetector(
-                                onTap: () => Navigator.of(context).pop(),
+                                onTap: () {
+                                  Navigator.of(context).pushReplacement(
+                                    MaterialPageRoute(
+                                      builder: (context) => const ClinicLoginPage(),
+                                    ),
+                                  );
+                                },
                                 child: Text(
                                   t('login_cta'),
                                   style: const TextStyle(
@@ -520,4 +528,3 @@ class _ClinicSignUpPageState extends State<ClinicSignUpPage> {
     );
   }
 }
-
