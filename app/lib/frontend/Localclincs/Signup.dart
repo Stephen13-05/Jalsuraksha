@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:app/locale/locale_controller.dart';
 import 'package:app/l10n/app_localizations.dart';
+import 'package:file_picker/file_picker.dart';
 
 class ClinicSignUpPage extends StatefulWidget {
   const ClinicSignUpPage({super.key});
@@ -18,11 +19,12 @@ class _ClinicSignUpPageState extends State<ClinicSignUpPage> {
   final _clinicIdController = TextEditingController();
   String? _selectedClinicType;
   final List<String> _clinicTypes = const [
-    'Primary Health Center',
-    'Community Health Center',
-    'Private Clinic',
-    'NGO Clinic',
-    'Other',
+    // Values are placeholders; display text will be localized during build
+    'phc',
+    'chc',
+    'private',
+    'ngo',
+    'other',
   ];
   final _districtVillageController = TextEditingController();
   final _addressPinController = TextEditingController();
@@ -36,7 +38,6 @@ class _ClinicSignUpPageState extends State<ClinicSignUpPage> {
   String? _clinicRegDocPath;
   String? _doctorIdDocPath;
 
-  bool _isVerifyingOtp = false;
   bool _isSubmitting = false;
 
   @override
@@ -53,20 +54,16 @@ class _ClinicSignUpPageState extends State<ClinicSignUpPage> {
 
   bool _isValidPhone(String input) => RegExp(r'^[0-9]{10}$').hasMatch(input);
 
-  Future<void> _verifyOtp() async {
-    if (!_isValidPhone(_mobileController.text.trim())) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(AppLocalizations.of(context).t('phone_invalid'))),
-      );
-      return;
-    }
-    setState(() => _isVerifyingOtp = true);
-    await Future.delayed(const Duration(seconds: 1));
-    if (!mounted) return;
-    setState(() => _isVerifyingOtp = false);
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('OTP sent to mobile number')),
+  Future<String?> _pickFile({List<String>? allowedExtensions}) async {
+    final result = await FilePicker.platform.pickFiles(
+      allowMultiple: false,
+      type: allowedExtensions == null ? FileType.any : FileType.custom,
+      allowedExtensions: allowedExtensions,
+      withData: false,
     );
+    if (result == null || result.files.isEmpty) return null;
+    final file = result.files.single;
+    return file.name; // Display-only; integration can use path if needed: file.path
   }
 
   Future<void> _submit() async {
@@ -210,7 +207,7 @@ class _ClinicSignUpPageState extends State<ClinicSignUpPage> {
                   Icon(Icons.cloud_upload_outlined, color: Colors.grey.shade600),
                   const SizedBox(height: 8),
                   Text(
-                    fileName ?? 'Click to upload or drag and drop',
+                    fileName ?? 'Click to upload',
                     style: const TextStyle(color: Color(0xFF64748B), fontSize: 14),
                   ),
                   const SizedBox(height: 2),
@@ -226,11 +223,20 @@ class _ClinicSignUpPageState extends State<ClinicSignUpPage> {
 
   @override
   Widget build(BuildContext context) {
+    final t = AppLocalizations.of(context).t;
+    // Build localized display map for clinic types
+    final Map<String, String> clinicTypeLabels = {
+      'phc': t('clinic_type_phc'),
+      'chc': t('clinic_type_chc'),
+      'private': t('clinic_type_private'),
+      'ngo': t('clinic_type_ngo'),
+      'other': t('clinic_type_other'),
+    };
     return Scaffold(
       appBar: AppBar(
         elevation: 0,
         centerTitle: true,
-        title: const Text('Register Clinic'),
+        title: Text(t('clinic_register_title')),
       ),
       body: SafeArea(
         child: Padding(
@@ -238,39 +244,38 @@ class _ClinicSignUpPageState extends State<ClinicSignUpPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              // Language selector aligned to end (kept consistent with ASHA pages)
-              Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  PopupMenuButton<String>(
-                    icon: const Icon(Icons.public, size: 20, color: Colors.black54),
-                    onSelected: (code) {
-                      switch (code) {
-                        case 'ne':
-                        case 'en':
-                        case 'as':
-                        case 'hi':
-                          LocaleController.instance.setLocale(Locale(code));
-                          break;
-                      }
-                    },
-                    itemBuilder: (context) => const [
-                      PopupMenuItem(value: 'ne', child: Text('Nepali')),
-                      PopupMenuItem(value: 'en', child: Text('English')),
-                      PopupMenuItem(value: 'as', child: Text('Assamese')),
-                      PopupMenuItem(value: 'hi', child: Text('Hindi')),
-                    ],
-                  ),
-                ],
-              ),
-              const SizedBox(height: 12),
-              const Center(
-                child: SizedBox(
-                  height: 120,
-                  child: Image(
-                    image: AssetImage('assets/images/logo.png'),
-                    fit: BoxFit.contain,
-                  ),
+              // Top header area with centered logo and language selector at top-right
+              SizedBox(
+                height: 160,
+                child: Stack(
+                  children: [
+                    Align(
+                      alignment: Alignment.center,
+                      child: Image.asset('assets/images/logo.png', height: 140, fit: BoxFit.contain),
+                    ),
+                    Align(
+                      alignment: Alignment.topRight,
+                      child: PopupMenuButton<String>(
+                        icon: const Icon(Icons.public, size: 20, color: Colors.black54),
+                        onSelected: (code) {
+                          switch (code) {
+                            case 'ne':
+                            case 'en':
+                            case 'as':
+                            case 'hi':
+                              LocaleController.instance.setLocale(Locale(code));
+                              break;
+                          }
+                        },
+                        itemBuilder: (context) => const [
+                          PopupMenuItem(value: 'ne', child: Text('Nepali')),
+                          PopupMenuItem(value: 'en', child: Text('English')),
+                          PopupMenuItem(value: 'as', child: Text('Assamese')),
+                          PopupMenuItem(value: 'hi', child: Text('Hindi')),
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
               ),
               const SizedBox(height: 8),
@@ -283,7 +288,7 @@ class _ClinicSignUpPageState extends State<ClinicSignUpPage> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        _sectionHeader('Clinic Information'),
+                        _sectionHeader(t('clinic_info_section')),
                         const SizedBox(height: 12),
 
                         // Clinic Name
@@ -293,10 +298,10 @@ class _ClinicSignUpPageState extends State<ClinicSignUpPage> {
                             textInputAction: TextInputAction.next,
                             style: const TextStyle(fontSize: 16),
                             decoration: _filledDecoration(
-                              hint: 'Enter clinic name',
+                              hint: t('clinic_name_hint'),
                               prefixIcon: const Icon(Icons.local_hospital_outlined, color: Color(0xFF9CA3AF), size: 22),
                             ),
-                            validator: (v) => (v == null || v.trim().isEmpty) ? 'Clinic name is required' : null,
+                            validator: (v) => (v == null || v.trim().isEmpty) ? t('name_empty') : null,
                           ),
                         ),
                         const SizedBox(height: 12),
@@ -308,19 +313,19 @@ class _ClinicSignUpPageState extends State<ClinicSignUpPage> {
                             textInputAction: TextInputAction.next,
                             style: const TextStyle(fontSize: 16),
                             decoration: _filledDecoration(
-                              hint: 'Enter clinic ID',
+                              hint: t('clinic_id_hint'),
                               prefixIcon: const Icon(Icons.badge_outlined, color: Color(0xFF9CA3AF), size: 22),
                             ),
-                            validator: (v) => (v == null || v.trim().isEmpty) ? 'Clinic ID is required' : null,
+                            validator: (v) => (v == null || v.trim().isEmpty) ? t('id_empty') : null,
                           ),
                         ),
                         const SizedBox(height: 12),
 
                         // Clinic Type
                         _dropdownField<String>(
-                          label: 'Type',
+                          label: t('clinic_type_label'),
                           value: _selectedClinicType,
-                          items: _clinicTypes,
+                          items: clinicTypeLabels.values.toList(),
                           onChanged: (val) => setState(() => _selectedClinicType = val),
                         ),
                         const SizedBox(height: 12),
@@ -332,10 +337,10 @@ class _ClinicSignUpPageState extends State<ClinicSignUpPage> {
                             textInputAction: TextInputAction.next,
                             style: const TextStyle(fontSize: 16),
                             decoration: _filledDecoration(
-                              hint: 'Enter district or village',
+                              hint: t('district_village_hint'),
                               prefixIcon: const Icon(Icons.map_outlined, color: Color(0xFF9CA3AF), size: 22),
                             ),
-                            validator: (v) => (v == null || v.trim().isEmpty) ? 'District/Village is required' : null,
+                            validator: (v) => (v == null || v.trim().isEmpty) ? t('dc_enter_district') : null,
                           ),
                         ),
                         const SizedBox(height: 12),
@@ -349,15 +354,15 @@ class _ClinicSignUpPageState extends State<ClinicSignUpPage> {
                             textInputAction: TextInputAction.newline,
                             style: const TextStyle(fontSize: 16),
                             decoration: _filledDecoration(
-                              hint: 'Enter address and pin code',
+                              hint: t('address_pin_hint'),
                               prefixIcon: const Icon(Icons.location_on_outlined, color: Color(0xFF9CA3AF), size: 22),
                             ),
-                            validator: (v) => (v == null || v.trim().isEmpty) ? 'Address & Pin Code is required' : null,
+                            validator: (v) => (v == null || v.trim().isEmpty) ? t('dc_enter_address') : null,
                           ),
                         ),
 
                         const SizedBox(height: 20),
-                        _sectionHeader('Staff Information'),
+                        _sectionHeader(t('staff_info_section')),
                         const SizedBox(height: 12),
 
                         // Staff Name
@@ -367,10 +372,10 @@ class _ClinicSignUpPageState extends State<ClinicSignUpPage> {
                             textInputAction: TextInputAction.next,
                             style: const TextStyle(fontSize: 16),
                             decoration: _filledDecoration(
-                              hint: 'Enter name',
+                              hint: t('name_hint'),
                               prefixIcon: const Icon(Icons.person_outline, color: Color(0xFF9CA3AF), size: 22),
                             ),
-                            validator: (v) => (v == null || v.trim().isEmpty) ? 'Name is required' : null,
+                            validator: (v) => (v == null || v.trim().isEmpty) ? t('name_empty') : null,
                           ),
                         ),
                         const SizedBox(height: 12),
@@ -382,10 +387,10 @@ class _ClinicSignUpPageState extends State<ClinicSignUpPage> {
                             textInputAction: TextInputAction.next,
                             style: const TextStyle(fontSize: 16),
                             decoration: _filledDecoration(
-                              hint: 'Enter designation',
+                              hint: t('designation_hint'),
                               prefixIcon: const Icon(Icons.work_outline, color: Color(0xFF9CA3AF), size: 22),
                             ),
-                            validator: (v) => (v == null || v.trim().isEmpty) ? 'Designation is required' : null,
+                            validator: (v) => (v == null || v.trim().isEmpty) ? t('not_specified') : null,
                           ),
                         ),
                         const SizedBox(height: 12),
@@ -405,60 +410,46 @@ class _ClinicSignUpPageState extends State<ClinicSignUpPage> {
                                     FilteringTextInputFormatter.digitsOnly,
                                     LengthLimitingTextInputFormatter(10),
                                   ],
-                                  decoration: const InputDecoration(
+                                  decoration: InputDecoration(
                                     border: InputBorder.none,
-                                    hintText: 'Enter mobile number',
-                                    hintStyle: TextStyle(color: Color(0xFF9CA3AF), fontSize: 16),
+                                    hintText: t('mobile_hint'),
+                                    hintStyle: const TextStyle(color: Color(0xFF9CA3AF), fontSize: 16),
                                   ),
                                   validator: (v) {
-                                    if (v == null || v.isEmpty) return 'Mobile number is required';
-                                    if (!_isValidPhone(v)) return 'Enter a valid 10-digit mobile number';
+                                    if (v == null || v.isEmpty) return t('mobile_required');
+                                    if (!_isValidPhone(v)) return t('mobile_invalid');
                                     return null;
                                   },
                                 ),
                               ),
-                              const SizedBox(width: 8),
-                              TextButton(
-                                onPressed: _isVerifyingOtp ? null : _verifyOtp,
-                                style: TextButton.styleFrom(
-                                  foregroundColor: Colors.white,
-                                  backgroundColor: const Color(0xFF22C55E),
-                                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                                ),
-                                child: _isVerifyingOtp
-                                    ? const SizedBox(
-                                        width: 16,
-                                        height: 16,
-                                        child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
-                                      )
-                                    : const Text('Verify OTP'),
-                              ),
-                              const SizedBox(width: 8),
                             ],
                           ),
                         ),
 
                         const SizedBox(height: 20),
-                        _sectionHeader('Verification Documents'),
+                        _sectionHeader(t('verification_docs_section')),
                         const SizedBox(height: 12),
 
                         _uploadBox(
-                          label: 'Upload Clinic Registration Certificate / ID Proof',
+                          label: t('upload_clinic_doc'),
                           fileName: _clinicRegDocPath,
-                          onTap: () {
-                            // TODO: Integrate file picker
-                            setState(() => _clinicRegDocPath = 'document_selected.pdf');
+                          onTap: () async {
+                            final picked = await _pickFile(allowedExtensions: ['pdf', 'png', 'jpg', 'jpeg', 'gif']);
+                            if (picked != null) {
+                              setState(() => _clinicRegDocPath = picked);
+                            }
                           },
                         ),
                         const SizedBox(height: 12),
 
                         _uploadBox(
-                          label: 'Upload Doctor ID (optional but recommended)',
+                          label: t('upload_doctor_id'),
                           fileName: _doctorIdDocPath,
-                          onTap: () {
-                            // TODO: Integrate file picker
-                            setState(() => _doctorIdDocPath = 'doctor_id_image.jpg');
+                          onTap: () async {
+                            final picked = await _pickFile(allowedExtensions: ['png', 'jpg', 'jpeg', 'gif', 'pdf']);
+                            if (picked != null) {
+                              setState(() => _doctorIdDocPath = picked);
+                            }
                           },
                         ),
 
@@ -482,9 +473,9 @@ class _ClinicSignUpPageState extends State<ClinicSignUpPage> {
                                       strokeWidth: 2,
                                     ),
                                   )
-                                : const Text(
-                                    'Register Clinic',
-                                    style: TextStyle(
+                                : Text(
+                                    t('register_clinic_button'),
+                                    style: const TextStyle(
                                       fontSize: 16,
                                       fontWeight: FontWeight.w600,
                                       color: Colors.white,
@@ -499,15 +490,15 @@ class _ClinicSignUpPageState extends State<ClinicSignUpPage> {
                             alignment: WrapAlignment.center,
                             crossAxisAlignment: WrapCrossAlignment.center,
                             children: [
-                              const Text(
-                                'Already have an account? ',
-                                style: TextStyle(fontSize: 14, color: Colors.black87),
+                              Text(
+                                t('already_have_account'),
+                                style: const TextStyle(fontSize: 14, color: Colors.black87),
                               ),
                               GestureDetector(
                                 onTap: () => Navigator.of(context).pop(),
-                                child: const Text(
-                                  'Login',
-                                  style: TextStyle(
+                                child: Text(
+                                  t('login_cta'),
+                                  style: const TextStyle(
                                     fontSize: 14,
                                     color: Color(0xFF22C55E),
                                     fontWeight: FontWeight.w600,

@@ -54,6 +54,8 @@ dependencies:
   
   # Media picking (camera/gallery)
   image_picker: ^1.1.2
+  # General file picker for documents and images
+  file_picker: ^6.1.1
     
   # Local storage to remember returning users (for splash routing)
   shared_preferences: ^2.2.3
