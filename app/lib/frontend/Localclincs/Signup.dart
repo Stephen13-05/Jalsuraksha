@@ -260,12 +260,15 @@ class _ClinicSignUpPageState extends State<ClinicSignUpPage> {
                       child: PopupMenuButton<String>(
                         icon: const Icon(Icons.public, size: 20, color: Colors.black54),
                         onSelected: (code) {
+                          // Apply language change globally for all users
                           switch (code) {
                             case 'ne':
                             case 'en':
                             case 'as':
                             case 'hi':
                               LocaleController.instance.setLocale(Locale(code));
+                              // Force rebuild to apply changes immediately
+                              setState(() {});
                               break;
                           }
                         },
