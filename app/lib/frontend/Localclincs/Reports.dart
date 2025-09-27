@@ -16,26 +16,26 @@ class _ClinicReportsPageState extends State<ClinicReportsPage> {
       patientId: '12345',
       collectedOn: DateTime(2024, 7, 26),
       source: 'Well',
-      status: ReportStatus.completed,
+      status: ReportStatus.safe,
     ),
     _ReportItem(
       patientId: '67890',
       collectedOn: DateTime(2024, 7, 25),
       source: 'Tap',
-      status: ReportStatus.completed,
+      status: ReportStatus.unsafe,
     ),
     _ReportItem(
       patientId: '11223',
       collectedOn: DateTime(2024, 7, 24),
       source: 'River',
-      status: ReportStatus.completed,
+      status: ReportStatus.pending,
     ),
   ];
 
   String _searchQuery = '';
   String _selectedSource = 'All';
-  String _selectedStatus = 'All';
-  String _selectedDateSort = 'Newest first';
+  String _selectedStatus = 'all';
+  String _selectedDateSort = 'newest';
 
   List<_ReportItem> get _filteredReports {
     List<_ReportItem> list = List.of(_reports);
@@ -52,14 +52,14 @@ class _ClinicReportsPageState extends State<ClinicReportsPage> {
       list = list.where((r) => r.source == _selectedSource).toList();
     }
 
-    // Filter by status
-    if (_selectedStatus != 'All') {
-      list = list.where((r) => _statusLabel(r.status) == _selectedStatus).toList();
+    // Filter by status (compare using status keys, not localized labels)
+    if (_selectedStatus != 'all') {
+      list = list.where((r) => _statusKey(r.status) == _selectedStatus).toList();
     }
 
     // Sort by date
     list.sort((a, b) => a.collectedOn.compareTo(b.collectedOn));
-    if (_selectedDateSort == 'Newest first') {
+    if (_selectedDateSort == 'newest') {
       list = list.reversed.toList();
     }
 
@@ -74,8 +74,8 @@ class _ClinicReportsPageState extends State<ClinicReportsPage> {
 
   @override
   Widget build(BuildContext context) {
-    // Keep localization instance available for future key-based translations
-    final _ = AppLocalizations.of(context);
+  // Keep localization instance available for translations
+  final localizations = AppLocalizations.of(context);
 
     return Scaffold(
       appBar: AppBar(
@@ -85,9 +85,9 @@ class _ClinicReportsPageState extends State<ClinicReportsPage> {
           icon: const Icon(Icons.arrow_back, color: Colors.black87),
           onPressed: () => Navigator.of(context).maybePop(),
         ),
-        title: const Text(
-          'Reports',
-          style: TextStyle(
+        title: Text(
+          localizations.t('nav_reports'),
+          style: const TextStyle(
             color: Colors.black87,
             fontSize: 18,
             fontWeight: FontWeight.w600,
@@ -98,7 +98,7 @@ class _ClinicReportsPageState extends State<ClinicReportsPage> {
       floatingActionButton: FloatingActionButton(
         onPressed: () {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Add new report')),
+            SnackBar(content: Text(localizations.t('add_new_report'))),
           );
         },
         backgroundColor: const Color(0xFF3B82F6),
@@ -144,13 +144,13 @@ class _ClinicReportsPageState extends State<ClinicReportsPage> {
       height: 48,
       padding: const EdgeInsets.symmetric(horizontal: 8),
       alignment: Alignment.center,
-      child: TextField(
+          child: TextField(
         controller: _searchCtrl,
         onChanged: (v) => setState(() => _searchQuery = v),
-        decoration: const InputDecoration(
-          hintText: 'Search  Patient ID',
-          hintStyle: TextStyle(color: Color(0xFF9CA3AF), fontSize: 16),
-          prefixIcon: Icon(Icons.search, color: Color(0xFF9CA3AF)),
+        decoration: InputDecoration(
+          hintText: AppLocalizations.of(context).t('search_patient_id'),
+          hintStyle: const TextStyle(color: Color(0xFF9CA3AF), fontSize: 16),
+          prefixIcon: const Icon(Icons.search, color: Color(0xFF9CA3AF)),
           border: InputBorder.none,
         ),
       ),
@@ -158,9 +158,9 @@ class _ClinicReportsPageState extends State<ClinicReportsPage> {
   }
 
   Widget _buildFilters() {
-    final sources = const ['All', 'Well', 'Tap', 'River'];
-    final statuses = const ['All', 'Completed', 'Pending', 'In Progress'];
-    final dates = const ['Newest first', 'Oldest first'];
+  final sources = const ['All', 'Well', 'Tap', 'River'];
+  final statuses = const ['all', 'safe', 'unsafe', 'pending'];
+  final dates = const ['newest', 'oldest'];
 
     return Wrap(
       spacing: 8,
@@ -170,27 +170,27 @@ class _ClinicReportsPageState extends State<ClinicReportsPage> {
           value: _selectedSource,
           items: sources,
           onChanged: (val) => setState(() => _selectedSource = val ?? 'All'),
-          labelBuilder: (v) => 'Source',
+          labelBuilder: (v) => AppLocalizations.of(context).t('source_label'),
         ),
         _boxedDropdown<String>(
           value: _selectedStatus,
           items: statuses,
           onChanged: (val) => setState(() => _selectedStatus = val ?? 'All'),
-          labelBuilder: (v) => 'Status',
+          labelBuilder: (v) => AppLocalizations.of(context).t('status_label'),
         ),
         _boxedDropdown<String>(
           value: _selectedDateSort,
           items: dates,
           onChanged: (val) => setState(() => _selectedDateSort = val ?? 'Newest first'),
-          labelBuilder: (v) => 'Date',
+          labelBuilder: (v) => AppLocalizations.of(context).t('date_label'),
         ),
       ],
     );
   }
 
   Widget _buildReportCard(_ReportItem r) {
-    final String dateStr = r.collectedOn.toIso8601String().split('T').first;
-    return Container(
+  final String dateStr = r.collectedOn.toIso8601String().split('T').first;
+  return Container(
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
@@ -201,14 +201,14 @@ class _ClinicReportsPageState extends State<ClinicReportsPage> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Patient ID: ${r.patientId}',
+                      '${AppLocalizations.of(context).t('patient_id_label')}: ${r.patientId}',
                       style: const TextStyle(
                         color: Color(0xFF64748B),
                         fontSize: 13,
@@ -217,7 +217,7 @@ class _ClinicReportsPageState extends State<ClinicReportsPage> {
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      'Date Collected: $dateStr',
+                      '${AppLocalizations.of(context).t('date_collected')}: $dateStr',
                       style: const TextStyle(
                         color: Color(0xFF64748B),
                         fontSize: 13,
@@ -226,7 +226,13 @@ class _ClinicReportsPageState extends State<ClinicReportsPage> {
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      r.source,
+                      // localize known sources
+                      () {
+                        if (r.source == 'Well') return AppLocalizations.of(context).t('dc_source_well');
+                        if (r.source == 'Tap') return AppLocalizations.of(context).t('dc_source_tap');
+                        if (r.source == 'River') return AppLocalizations.of(context).t('dc_source_river_pond');
+                        return r.source;
+                      }(),
                       style: const TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.w700,
@@ -236,9 +242,10 @@ class _ClinicReportsPageState extends State<ClinicReportsPage> {
                   ],
                 ),
               ),
+              // larger, centered status dot
               Padding(
-                padding: const EdgeInsets.only(top: 4.0),
-                child: _statusDot(r.status),
+                padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                child: Center(child: _statusDot(r.status)),
               ),
             ],
           ),
@@ -247,17 +254,17 @@ class _ClinicReportsPageState extends State<ClinicReportsPage> {
             spacing: 8,
             runSpacing: 8,
             children: [
-              _smallOutlinedButton('View Details', () {
+              _smallOutlinedButton(AppLocalizations.of(context).t('view_details'), () {
                 ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('Viewing details for ${r.patientId}')),
+                  SnackBar(content: Text(AppLocalizations.of(context).t('viewing_details') + ' ${r.patientId}')),
                 );
               }),
-              _smallOutlinedButton('Edit', () {
+              _smallOutlinedButton(AppLocalizations.of(context).t('edit'), () {
                 ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('Edit ${r.patientId}')),
+                  SnackBar(content: Text(AppLocalizations.of(context).t('edit_item') + ' ${r.patientId}')),
                 );
               }),
-              _smallOutlinedButton('Delete', () {
+              _smallOutlinedButton(AppLocalizations.of(context).t('delete'), () {
                 _confirmDelete(r);
               }, color: const Color(0xFFEF4444)),
             ],
@@ -290,10 +297,24 @@ class _ClinicReportsPageState extends State<ClinicReportsPage> {
           items: items
               .map((e) => DropdownMenuItem<T>(
                     value: e,
-                    child: Text(
-                      e.toString(),
-                      style: const TextStyle(fontSize: 14, color: Colors.black87),
-                    ),
+                        child: Text(
+                          // Localize display for known keys
+                          () {
+                            final s = e.toString();
+                            if (s == 'All' || s == 'all') return AppLocalizations.of(context).t('all');
+                            if (s == 'Well') return AppLocalizations.of(context).t('dc_source_well');
+                            if (s == 'Tap') return AppLocalizations.of(context).t('dc_source_tap');
+                            if (s == 'River') return AppLocalizations.of(context).t('dc_source_river_pond');
+                            // status keys
+                            if (s == 'safe') return AppLocalizations.of(context).t('status_safe');
+                            if (s == 'unsafe') return AppLocalizations.of(context).t('status_unsafe');
+                            if (s == 'pending') return AppLocalizations.of(context).t('status_pending');
+                            if (s == 'newest') return AppLocalizations.of(context).t('sort_newest_first');
+                            if (s == 'oldest') return AppLocalizations.of(context).t('sort_oldest_first');
+                            return s;
+                          }(),
+                          style: const TextStyle(fontSize: 14, color: Colors.black87),
+                        ),
                   ))
               .toList(),
           onChanged: onChanged,
@@ -301,7 +322,20 @@ class _ClinicReportsPageState extends State<ClinicReportsPage> {
               .map((e) => Align(
                     alignment: Alignment.centerLeft,
                     child: Text(
-                      labelBuilder(e),
+                      // Show localized label for the selected value
+                      () {
+                        final s = e.toString();
+                        if (s == 'All' || s == 'all') return AppLocalizations.of(context).t('all');
+                        if (s == 'Well') return AppLocalizations.of(context).t('dc_source_well');
+                        if (s == 'Tap') return AppLocalizations.of(context).t('dc_source_tap');
+                        if (s == 'River') return AppLocalizations.of(context).t('dc_source_river_pond');
+                        if (s == 'safe') return AppLocalizations.of(context).t('status_safe');
+                        if (s == 'unsafe') return AppLocalizations.of(context).t('status_unsafe');
+                        if (s == 'pending') return AppLocalizations.of(context).t('status_pending');
+                        if (s == 'newest') return AppLocalizations.of(context).t('sort_newest_first');
+                        if (s == 'oldest') return AppLocalizations.of(context).t('sort_oldest_first');
+                        return s;
+                      }(),
                       style: const TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w500,
@@ -313,6 +347,17 @@ class _ClinicReportsPageState extends State<ClinicReportsPage> {
         ),
       ),
     );
+  }
+
+  String _statusKey(ReportStatus s) {
+    switch (s) {
+      case ReportStatus.safe:
+        return 'safe';
+      case ReportStatus.unsafe:
+        return 'unsafe';
+      case ReportStatus.pending:
+        return 'pending';
+    }
   }
 
   Widget _smallOutlinedButton(String label, VoidCallback onPressed, {Color? color}) {
@@ -337,31 +382,32 @@ class _ClinicReportsPageState extends State<ClinicReportsPage> {
   Widget _statusDot(ReportStatus status) {
     final Color color;
     switch (status) {
-      case ReportStatus.completed:
+      case ReportStatus.safe:
         color = const Color(0xFF16A34A); // green
         break;
-      case ReportStatus.pending:
-        color = const Color(0xFFF59E0B); // amber
+      case ReportStatus.unsafe:
+        color = const Color(0xFFEF4444); // red
         break;
-      case ReportStatus.inProgress:
+      case ReportStatus.pending:
         color = const Color(0xFF3B82F6); // blue
         break;
     }
     return Container(
-      width: 12,
-      height: 12,
+      width: 18,
+      height: 18,
       decoration: BoxDecoration(color: color, shape: BoxShape.circle),
     );
   }
 
   Widget _buildEmptyState() {
+    final loc = AppLocalizations.of(context);
     return Center(
       child: Column(
         mainAxisSize: MainAxisSize.min,
-        children: const [
-          Icon(Icons.inbox_outlined, size: 48, color: Color(0xFF94A3B8)),
-          SizedBox(height: 8),
-          Text('No reports found', style: TextStyle(color: Color(0xFF64748B))),
+        children: [
+          const Icon(Icons.inbox_outlined, size: 48, color: Color(0xFF94A3B8)),
+          const SizedBox(height: 8),
+          Text(loc.t('no_reports_found'), style: const TextStyle(color: Color(0xFF64748B))),
         ],
       ),
     );
@@ -371,11 +417,11 @@ class _ClinicReportsPageState extends State<ClinicReportsPage> {
     final ok = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Delete report?'),
-        content: Text('This will remove the report for Patient ID ${r.patientId}.'),
+        title: Text(AppLocalizations.of(context).t('delete_report_confirm')),
+        content: Text('${AppLocalizations.of(context).t('delete_report_confirmation')} ${r.patientId}.'),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
-          TextButton(onPressed: () => Navigator.pop(context, true), child: const Text('Delete')),
+          TextButton(onPressed: () => Navigator.pop(context, false), child: Text(AppLocalizations.of(context).t('cancel'))),
+          TextButton(onPressed: () => Navigator.pop(context, true), child: Text(AppLocalizations.of(context).t('delete'))),
         ],
       ),
     );
@@ -383,25 +429,16 @@ class _ClinicReportsPageState extends State<ClinicReportsPage> {
       setState(() => _reports.remove(r));
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Report deleted')),
+          SnackBar(content: Text(AppLocalizations.of(context).t('report_deleted'))),
         );
       }
     }
   }
 
-  String _statusLabel(ReportStatus s) {
-    switch (s) {
-      case ReportStatus.completed:
-        return 'Completed';
-      case ReportStatus.pending:
-        return 'Pending';
-      case ReportStatus.inProgress:
-        return 'In Progress';
-    }
-  }
+  // status label is now handled via localization keys; use _statusKey when needed
 }
 
-enum ReportStatus { completed, pending, inProgress }
+enum ReportStatus { safe, unsafe, pending }
 
 class _ReportItem {
   final String patientId;

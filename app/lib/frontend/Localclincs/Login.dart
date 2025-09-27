@@ -34,14 +34,7 @@ class _ClinicLoginPageState extends State<ClinicLoginPage> {
       RegExp(r'^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d@$!%*?&]{8}').hasMatch(input);
   }
 
-  String _getLocalizedText(BuildContext context, String key, String fallback) {
-    try {
-      final localizations = AppLocalizations.of(context);
-      return localizations.t(key);
-    } catch (e) {
-      return fallback;
-    }
-  }
+    // helper removed: use AppLocalizations.of(context).t('key') directly
 
   Future<void> _login() async {
     if (!_formKey.currentState!.validate()) {
@@ -62,7 +55,7 @@ class _ClinicLoginPageState extends State<ClinicLoginPage> {
     // Navigate to dashboard after successful login
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(_getLocalizedText(context, 'Login Successful', 'Login successful!')),
+  content: Text(AppLocalizations.of(context).t('login_successful')),
         backgroundColor: Colors.green,
         duration: const Duration(seconds: 1),
       ),
@@ -106,12 +99,10 @@ class _ClinicLoginPageState extends State<ClinicLoginPage> {
 
   @override
   Widget build(BuildContext context) {
-    final localizations = AppLocalizations.of(context);
-    
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          _getLocalizedText(context, 'Clinic Login', 'Clinic Login')
+          AppLocalizations.of(context).t('login')
         ),
         centerTitle: true,
         elevation: 0,
@@ -169,156 +160,155 @@ class _ClinicLoginPageState extends State<ClinicLoginPage> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-              const SizedBox(height: 40),
-              
-              // Phone Number Field
-              _boxedField(
-                child: TextFormField(
-                  controller: _phoneController,
-                  inputFormatters: [
-                    FilteringTextInputFormatter.digitsOnly,
-                    LengthLimitingTextInputFormatter(10),
-                  ],
-                  textInputAction: TextInputAction.next,
-                  style: const TextStyle(fontSize: 16),
-                  decoration: _filledDecoration(
-                    hint: _getLocalizedText(context, 'mobile_hint', 'Enter Phone Number'),
-                    prefixIcon: const Icon(Icons.phone_outlined, color: Color(0xFF9CA3AF), size: 22),
-                  ),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return _getLocalizedText(context, 'mobile_required', 'Phone number is required');
-                    }
-                    if (!_isValidPhone(value)) {
-                      return _getLocalizedText(context, 'mobile_invalid', 'Please enter a valid 10-digit phone number');
-                    }
-                    return null;
-                  },
-                ),
-              ),
-              const SizedBox(height: 12),
-              
-              // Password Field - EXACTLY 8 characters
-              _boxedField(
-                child: TextFormField(
-                  controller: _passwordController,
-                  obscureText: _obscurePassword,
-                  textInputAction: TextInputAction.done,
-                  style: const TextStyle(fontSize: 16),
-                  inputFormatters: [
-                    LengthLimitingTextInputFormatter(8),
-                  ],
-                  decoration: _filledDecoration(
-                    hint: _getLocalizedText(context, 'Password', 'Password'),
-                    prefixIcon: const Icon(Icons.lock_outline, color: Color(0xFF9CA3AF), size: 22),
-                    suffixIcon: IconButton(
-                      icon: Icon(
-                        _obscurePassword ? Icons.visibility : Icons.visibility_off,
-                        color: const Color(0xFF9CA3AF),
-                      ),
-                      onPressed: () {
-                        setState(() {
-                          _obscurePassword = !_obscurePassword;
-                        });
-                      },
-                    ),
-                  ),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return _getLocalizedText(context, 'field_required', 'This field is required');
-                    }
-                    if (!_isValidPassword(value)) {
-                      return _getLocalizedText(context, 'password_length_exact', 'Password must be exactly 8 characters');
-                    }
-                    return null;
-                  },
-                ),
-              ),
-              const SizedBox(height: 8),
-              Align(
-                alignment: Alignment.centerRight,
-                child: TextButton(
-                  onPressed: () {
-                    // TODO: Implement forgot password
-                  },
-                  child: Text(
-                    _getLocalizedText(context, 'Forgot Password', 'Forgot Password?'),
-                    style: const TextStyle(
-                      color: Color(0xFF3B82F6),
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 24),
-              SizedBox(
-                width: double.infinity,
-                height: 54,
-                child: ElevatedButton(
-                  onPressed: _isLoading ? null : _login,
-                  style: ElevatedButton.styleFrom(
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(14),
-                    ),
-                  ),
-                child: _isLoading
-                    ? const SizedBox(
-                        width: 24,
-                        height: 24,
-                        child: CircularProgressIndicator(
-                          color: Colors.white,
-                          strokeWidth: 2,
-                        ),
-                      )
-                    : Text(
-                        _getLocalizedText(context, 'Login', 'Login'),
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                          color: Colors.white,
-                        ),
-                      ),
-                ),
-              ),
-              const SizedBox(height: 12),
+                        const SizedBox(height: 40),
 
-              Center(
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      _getLocalizedText(context, "Don't have Account?", "Don't have an account? "),
-                      style: const TextStyle(
-                        fontSize: 14, 
-                        color: Colors.black87,
-                        fontWeight: FontWeight.w400,
-                      ),
-                    ),
-                    TextButton(
-                      onPressed: () {
-                        Navigator.pushReplacement(
-                          context,
-                          MaterialPageRoute(builder: (context) => const ClinicSignUpPage()),
-                        );
-                      },
-                      style: TextButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 0),
-                        minimumSize: Size.zero,
-                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                      ),
-                      child: Text(
-                        _getLocalizedText(context, 'Sign Up', 'Sign Up'),
-                        style: const TextStyle(
-                          fontSize: 14,
-                          color: Color(0xFF22C55E),
-                          fontWeight: FontWeight.w600,
-                          //decoration: TextDecoration.underline,
+                        // Phone Number Field
+                        _boxedField(
+                          child: TextFormField(
+                            controller: _phoneController,
+                            inputFormatters: [
+                              FilteringTextInputFormatter.digitsOnly,
+                              LengthLimitingTextInputFormatter(10),
+                            ],
+                            textInputAction: TextInputAction.next,
+                            style: const TextStyle(fontSize: 16),
+                            decoration: _filledDecoration(
+                              hint: AppLocalizations.of(context).t('mobile_hint'),
+                              prefixIcon: const Icon(Icons.phone_outlined, color: Color(0xFF9CA3AF), size: 22),
+                            ),
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return AppLocalizations.of(context).t('mobile_required');
+                              }
+                              if (!_isValidPhone(value)) {
+                                return AppLocalizations.of(context).t('mobile_invalid');
+                              }
+                              return null;
+                            },
+                          ),
                         ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
+                        const SizedBox(height: 12),
+
+                        // Password Field - EXACTLY 8 characters
+                        _boxedField(
+                          child: TextFormField(
+                            controller: _passwordController,
+                            obscureText: _obscurePassword,
+                            textInputAction: TextInputAction.done,
+                            style: const TextStyle(fontSize: 16),
+                            inputFormatters: [
+                              LengthLimitingTextInputFormatter(8),
+                            ],
+                            decoration: _filledDecoration(
+                              hint: AppLocalizations.of(context).t('hint_password'),
+                              prefixIcon: const Icon(Icons.lock_outline, color: Color(0xFF9CA3AF), size: 22),
+                              suffixIcon: IconButton(
+                                icon: Icon(
+                                  _obscurePassword ? Icons.visibility : Icons.visibility_off,
+                                  color: const Color(0xFF9CA3AF),
+                                ),
+                                onPressed: () {
+                                  setState(() {
+                                    _obscurePassword = !_obscurePassword;
+                                  });
+                                },
+                              ),
+                            ),
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return AppLocalizations.of(context).t('field_required');
+                              }
+                              if (!_isValidPassword(value)) {
+                                return AppLocalizations.of(context).t('password_length_exact');
+                              }
+                              return null;
+                            },
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Align(
+                          alignment: Alignment.centerRight,
+                          child: TextButton(
+                            onPressed: () {
+                              // TODO: Implement forgot password
+                            },
+                            child: Text(
+                              AppLocalizations.of(context).t('forgot_password'),
+                              style: const TextStyle(
+                                color: Color(0xFF3B82F6),
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 24),
+                        SizedBox(
+                          width: double.infinity,
+                          height: 54,
+                          child: ElevatedButton(
+                            onPressed: _isLoading ? null : _login,
+                            style: ElevatedButton.styleFrom(
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(14),
+                              ),
+                            ),
+                            child: _isLoading
+                                ? const SizedBox(
+                                    width: 24,
+                                    height: 24,
+                                    child: CircularProgressIndicator(
+                                      color: Colors.white,
+                                      strokeWidth: 2,
+                                    ),
+                                  )
+                                : Text(
+                                    AppLocalizations.of(context).t('login'),
+                                    style: const TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w600,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+
+                        Center(
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text(
+                                AppLocalizations.of(context).t('no_account'),
+                                style: const TextStyle(
+                                  fontSize: 14, 
+                                  color: Colors.black87,
+                                  fontWeight: FontWeight.w400,
+                                ),
+                              ),
+                              TextButton(
+                                onPressed: () {
+                                  Navigator.pushReplacement(
+                                    context,
+                                    MaterialPageRoute(builder: (context) => const ClinicSignUpPage()),
+                                  );
+                                },
+                                style: TextButton.styleFrom(
+                                  padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 0),
+                                  minimumSize: Size.zero,
+                                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                ),
+                                child: Text(
+                                  AppLocalizations.of(context).t('sign_up'),
+                                  style: const TextStyle(
+                                    fontSize: 14,
+                                    color: Color(0xFF22C55E),
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
                       ],
                     ),
                   ),

@@ -28,16 +28,17 @@ class _AddPatientCasePageState extends State<AddPatientCasePage> {
   bool _isSaving = false;
   bool _isSubmitting = false;
 
-  final List<String> _genderOptions = ['Male', 'Female', 'Other'];
+  // Option lists use localization keys (displayed via localizations.t(key))
+  final List<String> _genderOptions = ['gender_male', 'gender_female', 'gender_other'];
   final List<String> _symptomsOptions = [
-    'Fever',
-    'Diarrhea', 
-    'Vomiting',
-    'Abdominal_pain',
-    'Dehydration',
-    'Nausea',
-    'Headache',
-    'Fatigue'
+    'fever',
+    'diarrhea',
+    'vomiting',
+    'abdominal_pain',
+    'dehydration',
+    'nausea',
+    'headache',
+    'fatigue'
   ];
 
   @override
@@ -67,7 +68,7 @@ class _AddPatientCasePageState extends State<AddPatientCasePage> {
   Future<void> _saveCase() async {
     if (!_formKey.currentState!.validate()) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(AppLocalizations.of(context).t('Form Fix Errors'))),
+        SnackBar(content: Text(AppLocalizations.of(context).t('form_fix_errors'))),
       );
       return;
     }
@@ -82,7 +83,7 @@ class _AddPatientCasePageState extends State<AddPatientCasePage> {
     
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(AppLocalizations.of(context).t('Case Saved Successfully')),
+        content: Text(AppLocalizations.of(context).t('case_saved')),
         backgroundColor: Colors.green,
       ),
     );
@@ -91,7 +92,7 @@ class _AddPatientCasePageState extends State<AddPatientCasePage> {
   Future<void> _submitReport() async {
     if (!_formKey.currentState!.validate()) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(AppLocalizations.of(context).t('Form Fix Errors'))),
+        SnackBar(content: Text(AppLocalizations.of(context).t('form_fix_errors'))),
       );
       return;
     }
@@ -106,7 +107,7 @@ class _AddPatientCasePageState extends State<AddPatientCasePage> {
     
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(AppLocalizations.of(context).t('Report Submitted Successfully')),
+        content: Text(AppLocalizations.of(context).t('report_submitted')),
         backgroundColor: Colors.green,
       ),
     );
@@ -114,14 +115,7 @@ class _AddPatientCasePageState extends State<AddPatientCasePage> {
     Navigator.pop(context);
   }
 
-  String _getLocalizedText(BuildContext context, String key, String fallback) {
-    try {
-      final localizations = AppLocalizations.of(context);
-      return localizations.t(key);
-    } catch (e) {
-      return fallback;
-    }
-  }
+  // helper removed: use AppLocalizations.of(context).t('key') directly
 
   // Match visual style with other local clinic pages
   InputDecoration _filledDecoration({
@@ -206,13 +200,13 @@ class _AddPatientCasePageState extends State<AddPatientCasePage> {
 
   @override
   Widget build(BuildContext context) {
-    final localizations = AppLocalizations.of(context);
+    
     
     return Scaffold(
       appBar: AppBar(
         elevation: 0,
         centerTitle: true,
-        title: Text(localizations.t('Add Patient Case')),
+  title: Text(AppLocalizations.of(context).t('add_patient_case')),
         actions: [
           PopupMenuButton<String>(
             icon: const Icon(Icons.public, size: 20, color: Colors.black54),
@@ -251,8 +245,8 @@ class _AddPatientCasePageState extends State<AddPatientCasePage> {
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
                         // Patient Name/ID
-                        Text(
-                          localizations.t('Patient Id'),
+                          Text(
+                            AppLocalizations.of(context).t('patient_id_label'),
                           style: const TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.w500,
@@ -266,10 +260,10 @@ class _AddPatientCasePageState extends State<AddPatientCasePage> {
                             textInputAction: TextInputAction.next,
                             style: const TextStyle(fontSize: 16),
                             decoration: _filledDecoration(
-                              hint: localizations.t('Enter Patient Id'),
+                                hint: AppLocalizations.of(context).t('enter_patient_id'),
                               prefixIcon: const Icon(Icons.person_outline, color: Color(0xFF9CA3AF), size: 22),
                             ),
-                            validator: (v) => (v == null || v.trim().isEmpty) ? _getLocalizedText(context, 'Field required', 'This field is required') : null,
+                            validator: (v) => (v == null || v.trim().isEmpty) ? AppLocalizations.of(context).t('field_required') : null,
                           ),
                         ),
                         const SizedBox(height: 16),
@@ -282,7 +276,7 @@ class _AddPatientCasePageState extends State<AddPatientCasePage> {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    localizations.t('age'),
+                                    AppLocalizations.of(context).t('age'),
                                     style: const TextStyle(
                                       fontSize: 14,
                                       fontWeight: FontWeight.w500,
@@ -301,9 +295,9 @@ class _AddPatientCasePageState extends State<AddPatientCasePage> {
                                       textInputAction: TextInputAction.next,
                                       style: const TextStyle(fontSize: 16),
                                       decoration: _filledDecoration(
-                                        hint: localizations.t('Enter Age'),
+                                        hint: AppLocalizations.of(context).t('enter_age'),
                                       ),
-                                      validator: (v) => (v == null || v.trim().isEmpty) ? localizations.t('Field required') : null,
+                                      validator: (v) => (v == null || v.trim().isEmpty) ? AppLocalizations.of(context).t('field_required') : null,
                                     ),
                                   ),
                                 ],
@@ -312,11 +306,12 @@ class _AddPatientCasePageState extends State<AddPatientCasePage> {
                             const SizedBox(width: 12),
                             Expanded(
                               child: _dropdownField<String>(
-                                label: localizations.t('Gender'),
+                                label: AppLocalizations.of(context).t('gender'),
                                 value: _selectedGender,
                                 items: _genderOptions,
                                 onChanged: (val) => setState(() => _selectedGender = val),
-                                itemDisplayText: (item) => localizations.t('$item'),
+                                // Display without the 'gender_' prefix (keep stored value intact)
+                                itemDisplayText: (item) => AppLocalizations.of(context).t(item.replaceFirst('gender_', '')),
                               ),
                             ),
                           ],
@@ -325,17 +320,17 @@ class _AddPatientCasePageState extends State<AddPatientCasePage> {
 
                         // Symptoms
                         _dropdownField<String>(
-                          label: localizations.t('Symptoms'),
+                          label: AppLocalizations.of(context).t('symptoms_hint'),
                           value: _selectedSymptoms,
                           items: _symptomsOptions,
                           onChanged: (val) => setState(() => _selectedSymptoms = val),
-                          itemDisplayText: (item) => localizations.t('$item'),
+                          itemDisplayText: (item) => AppLocalizations.of(context).t(item),
                         ),
                         const SizedBox(height: 16),
 
                         // Disease Predicted
                         Text(
-                          localizations.t('Disease Predicted'),
+                          AppLocalizations.of(context).t('disease_predicted'),
                           style: const TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.w500,
@@ -349,17 +344,17 @@ class _AddPatientCasePageState extends State<AddPatientCasePage> {
                             textInputAction: TextInputAction.next,
                             style: const TextStyle(fontSize: 16),
                             decoration: _filledDecoration(
-                              hint: localizations.t('Disease Name'),
+                              hint: AppLocalizations.of(context).t('disease_name'),
                               prefixIcon: const Icon(Icons.medical_services_outlined, color: Color(0xFF9CA3AF), size: 22),
                             ),
-                            validator: (v) => (v == null || v.trim().isEmpty) ? localizations.t('Field Required') : null,
+                            validator: (v) => (v == null || v.trim().isEmpty) ? AppLocalizations.of(context).t('field_required') : null,
                           ),
                         ),
                         const SizedBox(height: 16),
 
                         // Date of Onset
                         Text(
-                          localizations.t('Date of Onset'),
+                          AppLocalizations.of(context).t('date_of_onset'),
                           style: const TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.w500,
@@ -384,7 +379,7 @@ class _AddPatientCasePageState extends State<AddPatientCasePage> {
                                   child: Text(
                                     _selectedDate != null
                                         ? '${_selectedDate!.day}/${_selectedDate!.month}/${_selectedDate!.year}'
-                                        : localizations.t('Select Date'),
+                                        : AppLocalizations.of(context).t('select_date'),
                                     style: TextStyle(
                                       fontSize: 16,
                                       color: _selectedDate != null ? Colors.black87 : const Color(0xFF9CA3AF),
@@ -400,7 +395,7 @@ class _AddPatientCasePageState extends State<AddPatientCasePage> {
 
                         // Village/Ward
                         Text(
-                          localizations.t('Village Ward'),
+                          AppLocalizations.of(context).t('village_ward'),
                           style: const TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.w500,
@@ -414,17 +409,17 @@ class _AddPatientCasePageState extends State<AddPatientCasePage> {
                             textInputAction: TextInputAction.next,
                             style: const TextStyle(fontSize: 16),
                             decoration: _filledDecoration(
-                              hint: localizations.t('Enter Village Ward'),
+                              hint: AppLocalizations.of(context).t('enter_village_ward'),
                               prefixIcon: const Icon(Icons.location_on_outlined, color: Color(0xFF9CA3AF), size: 22),
                             ),
-                            validator: (v) => (v == null || v.trim().isEmpty) ? localizations.t('Field required') : null,
+                            validator: (v) => (v == null || v.trim().isEmpty) ? AppLocalizations.of(context).t('field_required') : null,
                           ),
                         ),
                         const SizedBox(height: 16),
 
                         // Treatment Given
                         Text(
-                          localizations.t('Treatment Given'),
+                          AppLocalizations.of(context).t('treatment_given'),
                           style: const TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.w500,
@@ -445,10 +440,10 @@ class _AddPatientCasePageState extends State<AddPatientCasePage> {
                             textInputAction: TextInputAction.newline,
                             style: const TextStyle(fontSize: 16),
                             decoration: _filledDecoration(
-                              hint: localizations.t('Enter Treatment Details'),
+                              hint: AppLocalizations.of(context).t('enter_treatment_details'),
                               prefixIcon: const Icon(Icons.healing_outlined, color: Color(0xFF9CA3AF), size: 22),
                             ),
-                            validator: (v) => (v == null || v.trim().isEmpty) ? localizations.t('Field required') : null,
+                            validator: (v) => (v == null || v.trim().isEmpty) ? AppLocalizations.of(context).t('field_required') : null,
                           ),
                         ),
                         const SizedBox(height: 24),
@@ -481,8 +476,8 @@ class _AddPatientCasePageState extends State<AddPatientCasePage> {
                                   strokeWidth: 2,
                                 ),
                               )
-                            : Text(
-                                localizations.t('Save Case'),
+                                : Text(
+                                AppLocalizations.of(context).t('save_case'),
                                 style: const TextStyle(
                                   fontSize: 16,
                                   fontWeight: FontWeight.w600,
@@ -513,8 +508,8 @@ class _AddPatientCasePageState extends State<AddPatientCasePage> {
                                   strokeWidth: 2,
                                 ),
                               )
-                            : Text(
-                                localizations.t('Submit Report'),
+                                : Text(
+                                AppLocalizations.of(context).t('submit_report'),
                                 style: const TextStyle(
                                   fontSize: 16,
                                   fontWeight: FontWeight.w600,

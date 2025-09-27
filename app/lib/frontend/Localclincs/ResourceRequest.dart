@@ -28,14 +28,7 @@ class _ResourceRequestPageState extends State<ResourceRequestPage> {
 
   bool _isSubmitting = false;
 
-  String _getLocalizedText(BuildContext context, String key, String fallback) {
-    try {
-      final localizations = AppLocalizations.of(context);
-      return localizations.t(key);
-    } catch (e) {
-      return fallback;
-    }
-  }
+  // helper removed: use AppLocalizations.of(context).t('key') directly
 
   Future<void> _submitRequest() async {
     // Check if at least one item is selected
@@ -46,7 +39,7 @@ class _ResourceRequestPageState extends State<ResourceRequestPage> {
     if (!hasSelection) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(_getLocalizedText(context, 'select_at_least_one', 'Please select at least one resource or request')),
+          content: Text(AppLocalizations.of(context).t('select_at_least_one')),
           backgroundColor: Colors.orange,
         ),
       );
@@ -63,7 +56,7 @@ class _ResourceRequestPageState extends State<ResourceRequestPage> {
     
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(_getLocalizedText(context, 'request_submitted_success', 'Resource request submitted successfully!')),
+        content: Text(AppLocalizations.of(context).t('request_submitted_success')),
         backgroundColor: Colors.green,
       ),
     );
@@ -76,7 +69,7 @@ class _ResourceRequestPageState extends State<ResourceRequestPage> {
     // TODO: Implement track requests functionality
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(_getLocalizedText(context, 'track_requests_info', 'Track requests feature coming soon!')),
+        content: Text(AppLocalizations.of(context).t('track_requests_info')),
         backgroundColor: Colors.blue,
       ),
     );
@@ -135,7 +128,7 @@ class _ResourceRequestPageState extends State<ResourceRequestPage> {
       appBar: AppBar(
         elevation: 0,
         centerTitle: true,
-        title: Text(_getLocalizedText(context, 'resources_references', 'Resources & References')),
+        title: Text(AppLocalizations.of(context).t('resources_references')),
         actions: [
           PopupMenuButton<String>(
             icon: const Icon(Icons.public, size: 20, color: Colors.black54),
@@ -152,11 +145,11 @@ class _ResourceRequestPageState extends State<ResourceRequestPage> {
                   break;
               }
             },
-            itemBuilder: (context) => const [
-              PopupMenuItem(value: 'ne', child: Text('Nepali')),
-              PopupMenuItem(value: 'en', child: Text('English')),
-              PopupMenuItem(value: 'as', child: Text('Assamese')),
-              PopupMenuItem(value: 'hi', child: Text('Hindi')),
+            itemBuilder: (context) => [
+              PopupMenuItem(value: 'ne', child: Text(AppLocalizations.of(context).t('language_nepali'))),
+              PopupMenuItem(value: 'en', child: Text(AppLocalizations.of(context).t('language_english'))),
+              PopupMenuItem(value: 'as', child: Text(AppLocalizations.of(context).t('language_assamese'))),
+              PopupMenuItem(value: 'hi', child: Text(AppLocalizations.of(context).t('language_hindi'))),
             ],
           ),
         ],
@@ -172,70 +165,70 @@ class _ResourceRequestPageState extends State<ResourceRequestPage> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       // Medicines Shortage Section
-                      _buildSectionHeader(_getLocalizedText(context, 'medicines_shortage', 'Medicines Shortage')),
+                      _buildSectionHeader(AppLocalizations.of(context).t('medicines_shortage')),
                       
                       _buildCheckboxItem(
-                        title: _getLocalizedText(context, 'ors', 'ORS'),
+                        title: AppLocalizations.of(context).t('ors'),
                         value: _orsSelected,
                         onChanged: (value) => setState(() => _orsSelected = value ?? false),
                       ),
                       
                       _buildCheckboxItem(
-                        title: _getLocalizedText(context, 'iv_fluids', 'IV Fluids'),
+                        title: AppLocalizations.of(context).t('iv_fluids'),
                         value: _ivFluidsSelected,
                         onChanged: (value) => setState(() => _ivFluidsSelected = value ?? false),
                       ),
                       
                       _buildCheckboxItem(
-                        title: _getLocalizedText(context, 'antibiotics', 'Antibiotics'),
+                        title: AppLocalizations.of(context).t('antibiotics'),
                         value: _antibioticsSelected,
                         onChanged: (value) => setState(() => _antibioticsSelected = value ?? false),
                       ),
                       
                       _buildCheckboxItem(
-                        title: _getLocalizedText(context, 'others', 'Others'),
+                        title: AppLocalizations.of(context).t('others'),
                         value: _othersSelected,
                         onChanged: (value) => setState(() => _othersSelected = value ?? false),
                       ),
 
                       // Staff Shortage Section
-                      _buildSectionHeader(_getLocalizedText(context, 'staff_shortage', 'Staff Shortage')),
+                      _buildSectionHeader(AppLocalizations.of(context).t('staff_shortage')),
                       
                       _buildCheckboxItem(
-                        title: _getLocalizedText(context, 'doctors', 'Doctors'),
+                        title: AppLocalizations.of(context).t('doctors'),
                         value: _doctorsSelected,
                         onChanged: (value) => setState(() => _doctorsSelected = value ?? false),
                       ),
                       
                       _buildCheckboxItem(
-                        title: _getLocalizedText(context, 'nurses', 'Nurses'),
+                        title: AppLocalizations.of(context).t('nurses'),
                         value: _nursesSelected,
                         onChanged: (value) => setState(() => _nursesSelected = value ?? false),
                       ),
                       
                       _buildCheckboxItem(
-                        title: _getLocalizedText(context, 'health_assistants', 'Health Assistants'),
+                        title: AppLocalizations.of(context).t('health_assistants'),
                         value: _healthAssistantsSelected,
                         onChanged: (value) => setState(() => _healthAssistantsSelected = value ?? false),
                       ),
 
                       // Referral Requests Section
-                      _buildSectionHeader(_getLocalizedText(context, 'referral_requests', 'Referral Requests')),
+                      _buildSectionHeader(AppLocalizations.of(context).t('referral_requests')),
                       
                       _buildCheckboxItem(
-                        title: _getLocalizedText(context, 'district_hospital', 'District Hospital'),
+                        title: AppLocalizations.of(context).t('district_hospital'),
                         value: _districtHospitalSelected,
                         onChanged: (value) => setState(() => _districtHospitalSelected = value ?? false),
                       ),
                       
                       _buildCheckboxItem(
-                        title: _getLocalizedText(context, 'ngo_support', 'NGO Support'),
+                        title: AppLocalizations.of(context).t('ngo_support'),
                         value: _ngoSupportSelected,
                         onChanged: (value) => setState(() => _ngoSupportSelected = value ?? false),
                       ),
                       
                       _buildCheckboxItem(
-                        title: _getLocalizedText(context, 'testing_lab', 'Testing Lab'),
+                        title: AppLocalizations.of(context).t('testing_lab'),
                         value: _testingLabSelected,
                         onChanged: (value) => setState(() => _testingLabSelected = value ?? false),
                       ),
@@ -270,7 +263,7 @@ class _ResourceRequestPageState extends State<ResourceRequestPage> {
                               ),
                             )
                           : Text(
-                              _getLocalizedText(context, 'submit_request', 'Submit Request'),
+                              AppLocalizations.of(context).t('submit_request'),
                               style: const TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.w600,
@@ -292,7 +285,7 @@ class _ResourceRequestPageState extends State<ResourceRequestPage> {
                         ),
                       ),
                       child: Text(
-                        _getLocalizedText(context, 'track_requests', 'Track Requests'),
+                        AppLocalizations.of(context).t('track_requests'),
                         style: const TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w600,

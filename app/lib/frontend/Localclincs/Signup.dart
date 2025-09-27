@@ -81,10 +81,10 @@ class _ClinicSignUpPageState extends State<ClinicSignUpPage> {
     if (!mounted) return;
     setState(() => _isSubmitting = false);
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Registration submitted!'),
+      SnackBar(
+        content: Text(AppLocalizations.of(context).t('registration_submitted')),
         backgroundColor: Colors.green,
-        duration: Duration(seconds: 2),
+        duration: const Duration(seconds: 2),
       ),
     );
     Navigator.of(context).pop();
@@ -209,11 +209,11 @@ class _ClinicSignUpPageState extends State<ClinicSignUpPage> {
                   Icon(Icons.cloud_upload_outlined, color: Colors.grey.shade600),
                   const SizedBox(height: 8),
                   Text(
-                    fileName ?? 'Click to upload',
+                    fileName ?? AppLocalizations.of(context).t('click_to_upload'),
                     style: const TextStyle(color: Color(0xFF64748B), fontSize: 14),
                   ),
                   const SizedBox(height: 2),
-                  const Text('SVG, PNG, JPG or GIF', style: TextStyle(color: Color(0xFF94A3B8), fontSize: 12)),
+                  Text(AppLocalizations.of(context).t('supported_formats'), style: const TextStyle(color: Color(0xFF94A3B8), fontSize: 12)),
                 ],
               ),
             ),

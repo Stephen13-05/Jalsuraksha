@@ -32,7 +32,7 @@ class _ReportOutbreakPageState extends State<ReportOutbreakPage> {
 
   final List<String> _outbreakTypes = [
     'cholera',
-    'dysentery', 
+    'dysentery',
     'typhoid',
     'hepatitis_a',
     'other'
@@ -52,14 +52,7 @@ class _ReportOutbreakPageState extends State<ReportOutbreakPage> {
     super.dispose();
   }
 
-  String _getLocalizedText(BuildContext context, String key, String fallback) {
-    try {
-      final localizations = AppLocalizations.of(context);
-      return localizations.t(key);
-    } catch (e) {
-      return fallback;
-    }
-  }
+  // helper removed: use AppLocalizations.of(context).t('key') directly
 
   Future<void> _selectDate() async {
     final DateTime? picked = await showDatePicker(
@@ -91,7 +84,7 @@ class _ReportOutbreakPageState extends State<ReportOutbreakPage> {
       }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(_getLocalizedText(context, 'file_upload_error', 'Error uploading file'))),
+        SnackBar(content: Text(AppLocalizations.of(context).t('file_upload_error'))),
       );
     }
   }
@@ -99,7 +92,7 @@ class _ReportOutbreakPageState extends State<ReportOutbreakPage> {
   Future<void> _flagOutbreak() async {
     if (!_formKey.currentState!.validate()) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(_getLocalizedText(context, 'form_fix_errors', 'Please fix the errors in the form'))),
+        SnackBar(content: Text(AppLocalizations.of(context).t('form_fix_errors'))),
       );
       return;
     }
@@ -114,7 +107,7 @@ class _ReportOutbreakPageState extends State<ReportOutbreakPage> {
     
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(_getLocalizedText(context, 'outbreak_flagged_success', 'Outbreak flagged successfully!')),
+        content: Text(AppLocalizations.of(context).t('outbreak_flagged_success')),
         backgroundColor: Colors.green,
       ),
     );
@@ -123,7 +116,7 @@ class _ReportOutbreakPageState extends State<ReportOutbreakPage> {
   Future<void> _notifyDistrictHealthOfficer() async {
     if (!_formKey.currentState!.validate()) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(_getLocalizedText(context, 'form_fix_errors', 'Please fix the errors in the form'))),
+        SnackBar(content: Text(AppLocalizations.of(context).t('form_fix_errors'))),
       );
       return;
     }
@@ -136,12 +129,12 @@ class _ReportOutbreakPageState extends State<ReportOutbreakPage> {
     if (!mounted) return;
     setState(() => _isNotifying = false);
     
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(_getLocalizedText(context, 'district_officer_notified', 'District Health Officer notified successfully!')),
-        backgroundColor: Colors.green,
-      ),
-    );
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(AppLocalizations.of(context).t('district_officer_notified')),
+          backgroundColor: Colors.green,
+        ),
+      );
     
     // Navigate back to dashboard
     Navigator.pop(context);
@@ -230,13 +223,11 @@ class _ReportOutbreakPageState extends State<ReportOutbreakPage> {
 
   @override
   Widget build(BuildContext context) {
-    final localizations = AppLocalizations.of(context);
-    
     return Scaffold(
       appBar: AppBar(
         elevation: 0,
         centerTitle: true,
-        title: Text(_getLocalizedText(context, 'report_outbreak_cluster', 'Report Outbreak Cluster')),
+  title: Text(AppLocalizations.of(context).t('report_outbreak_cluster')),
         actions: [
           PopupMenuButton<String>(
             icon: const Icon(Icons.public, size: 20, color: Colors.black54),
@@ -277,17 +268,17 @@ class _ReportOutbreakPageState extends State<ReportOutbreakPage> {
                       children: [
                         // Suspected Outbreak
                         _dropdownField<String>(
-                          label: _getLocalizedText(context, 'suspected_outbreak', 'Suspected Outbreak'),
+                          label: AppLocalizations.of(context).t('suspected_outbreak'),
                           value: _selectedOutbreak,
                           items: _outbreakTypes,
                           onChanged: (val) => setState(() => _selectedOutbreak = val),
-                          itemDisplayText: (item) => _getLocalizedText(context, 'outbreak_$item', item.replaceAll('_', ' ').toUpperCase()),
+                          itemDisplayText: (item) => AppLocalizations.of(context).t('outbreak_$item'),
                         ),
                         const SizedBox(height: 16),
 
                         // No. of Suspected Cases
                         Text(
-                          _getLocalizedText(context, 'no_suspected_cases', 'No. of Suspected Cases'),
+                          AppLocalizations.of(context).t('no_suspected_cases'),
                           style: const TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.w500,
@@ -306,17 +297,17 @@ class _ReportOutbreakPageState extends State<ReportOutbreakPage> {
                             textInputAction: TextInputAction.next,
                             style: const TextStyle(fontSize: 16),
                             decoration: _filledDecoration(
-                              hint: _getLocalizedText(context, 'enter_number_cases', 'Enter number of cases'),
+                              hint: AppLocalizations.of(context).t('enter_number_cases'),
                               prefixIcon: const Icon(Icons.people_outline, color: Color(0xFF9CA3AF), size: 22),
                             ),
-                            validator: (v) => (v == null || v.trim().isEmpty) ? _getLocalizedText(context, 'field_required', 'This field is required') : null,
+                            validator: (v) => (v == null || v.trim().isEmpty) ? AppLocalizations.of(context).t('field_required') : null,
                           ),
                         ),
                         const SizedBox(height: 16),
 
                         // Location/Village Affected
                         Text(
-                          _getLocalizedText(context, 'location_village_affected', 'Location/Village Affected'),
+                          AppLocalizations.of(context).t('location_village_affected'),
                           style: const TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.w500,
@@ -330,17 +321,17 @@ class _ReportOutbreakPageState extends State<ReportOutbreakPage> {
                             textInputAction: TextInputAction.next,
                             style: const TextStyle(fontSize: 16),
                             decoration: _filledDecoration(
-                              hint: _getLocalizedText(context, 'enter_location', 'Enter location or village name'),
+                              hint: AppLocalizations.of(context).t('enter_location'),
                               prefixIcon: const Icon(Icons.location_on_outlined, color: Color(0xFF9CA3AF), size: 22),
                             ),
-                            validator: (v) => (v == null || v.trim().isEmpty) ? _getLocalizedText(context, 'field_required', 'This field is required') : null,
+                            validator: (v) => (v == null || v.trim().isEmpty) ? AppLocalizations.of(context).t('field_required') : null,
                           ),
                         ),
                         const SizedBox(height: 16),
 
                         // First Case Date
                         Text(
-                          _getLocalizedText(context, 'first_case_date', 'First Case Date'),
+                          AppLocalizations.of(context).t('first_case_date'),
                           style: const TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.w500,
@@ -365,7 +356,7 @@ class _ReportOutbreakPageState extends State<ReportOutbreakPage> {
                                   child: Text(
                                     _firstCaseDate != null
                                         ? '${_firstCaseDate!.day}/${_firstCaseDate!.month}/${_firstCaseDate!.year}'
-                                        : _getLocalizedText(context, 'select_date', 'Select Date'),
+                                        : AppLocalizations.of(context).t('select_date'),
                                     style: TextStyle(
                                       fontSize: 16,
                                       color: _firstCaseDate != null ? Colors.black87 : const Color(0xFF9CA3AF),
@@ -381,7 +372,7 @@ class _ReportOutbreakPageState extends State<ReportOutbreakPage> {
 
                         // Observed Risk Factors
                         Text(
-                          _getLocalizedText(context, 'observed_risk_factors', 'Observed Risk Factors'),
+                          AppLocalizations.of(context).t('observed_risk_factors'),
                           style: const TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.w500,
@@ -402,17 +393,17 @@ class _ReportOutbreakPageState extends State<ReportOutbreakPage> {
                             textInputAction: TextInputAction.newline,
                             style: const TextStyle(fontSize: 16),
                             decoration: _filledDecoration(
-                              hint: _getLocalizedText(context, 'describe_risk_factors', 'Describe observed risk factors (flooding, contaminated source, poor sanitation)'),
+                              hint: AppLocalizations.of(context).t('describe_risk_factors'),
                               prefixIcon: const Icon(Icons.warning_outlined, color: Color(0xFF9CA3AF), size: 22),
                             ),
-                            validator: (v) => (v == null || v.trim().isEmpty) ? _getLocalizedText(context, 'field_required', 'This field is required') : null,
+                            validator: (v) => (v == null || v.trim().isEmpty) ? AppLocalizations.of(context).t('field_required') : null,
                           ),
                         ),
                         const SizedBox(height: 16),
 
                         // Upload Supporting Files
                         Text(
-                          _getLocalizedText(context, 'upload_supporting_files', 'Upload Supporting Files'),
+                          AppLocalizations.of(context).t('upload_supporting_files'),
                           style: const TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.w500,
@@ -436,7 +427,7 @@ class _ReportOutbreakPageState extends State<ReportOutbreakPage> {
                                 const SizedBox(width: 12),
                                 Expanded(
                                   child: Text(
-                                    _uploadedFileName ?? _getLocalizedText(context, 'upload_files_hint', 'Click to upload images or reports'),
+                                    _uploadedFileName ?? AppLocalizations.of(context).t('upload_files_hint'),
                                     style: TextStyle(
                                       color: _uploadedFileName != null ? Colors.black87 : const Color(0xFF64748B),
                                       fontSize: 14,
@@ -480,7 +471,7 @@ class _ReportOutbreakPageState extends State<ReportOutbreakPage> {
                               ),
                             )
                           : Text(
-                              _getLocalizedText(context, 'flag_outbreak', 'Flag Outbreak'),
+                              AppLocalizations.of(context).t('flag_outbreak'),
                               style: const TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.w600,
@@ -511,7 +502,7 @@ class _ReportOutbreakPageState extends State<ReportOutbreakPage> {
                               ),
                             )
                           : Text(
-                              _getLocalizedText(context, 'notify_district_health_officer', 'Notify District Health Officer'),
+                              AppLocalizations.of(context).t('notify_district_health_officer'),
                               style: const TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.w600,

@@ -15,14 +15,7 @@ class ClinicDashboard extends StatefulWidget {
 
 class _ClinicDashboardState extends State<ClinicDashboard> {
   
-  String _getLocalizedText(BuildContext context, String key, String fallback) {
-    try {
-      final localizations = AppLocalizations.of(context);
-      return localizations.t(key);
-    } catch (e) {
-      return fallback;
-    }
-  }
+  // helper removed: use AppLocalizations.of(context).t('key') directly
 
   @override
   Widget build(BuildContext context) {
@@ -38,7 +31,7 @@ class _ClinicDashboardState extends State<ClinicDashboard> {
           },
         ),
         title: Text(
-          _getLocalizedText(context, 'Dashboard', 'Dashboard'),
+          AppLocalizations.of(context).t('nav_home_title'),
           style: const TextStyle(
             color: Colors.black87,
             fontSize: 18,
@@ -84,7 +77,7 @@ class _ClinicDashboardState extends State<ClinicDashboard> {
           children: [
             // Today's Summary Section
             Text(
-              _getLocalizedText(context, 'Todays Summary', "Today's Summary"),
+              AppLocalizations.of(context).t('tab_today'),
               style: const TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.w600,
@@ -103,22 +96,22 @@ class _ClinicDashboardState extends State<ClinicDashboard> {
               childAspectRatio: 1.2,
               children: [
                 _buildSummaryCard(
-                  title: _getLocalizedText(context, 'Patients Reported', 'Patients\nReported'),
+                  title: AppLocalizations.of(context).t('my_reports'),
                   value: '23',
                   backgroundColor: Colors.white,
                 ),
                 _buildSummaryCard(
-                  title: _getLocalizedText(context, 'Waterborne Cases', 'Water-borne\nCases'),
+                  title: AppLocalizations.of(context).t('waterborne_cases'),
                   value: '8',
                   backgroundColor: Colors.white,
                 ),
                 _buildSummaryCard(
-                  title: _getLocalizedText(context, 'Water Samples Sent', 'Water Samples\nSent'),
+                  title: AppLocalizations.of(context).t('water_samples_sent'),
                   value: '15',
                   backgroundColor: Colors.white,
                 ),
                 _buildSummaryCard(
-                  title: _getLocalizedText(context, 'Pending Reports', 'Pending\nReports'),
+                  title: AppLocalizations.of(context).t('nav_reports'),
                   value: '3',
                   backgroundColor: Colors.white,
                 ),
@@ -129,7 +122,7 @@ class _ClinicDashboardState extends State<ClinicDashboard> {
             
             // Assigned Villages Section
             Text(
-              _getLocalizedText(context, 'Assigned Villages', 'Assigned Villages'),
+              AppLocalizations.of(context).t('village_label'),
               style: const TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.w600,
@@ -156,7 +149,7 @@ class _ClinicDashboardState extends State<ClinicDashboard> {
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      _getLocalizedText(context, 'Map View Villages', 'Map View\n(Villages Assignment)'),
+                      AppLocalizations.of(context).t('map_view_villages'),
                       textAlign: TextAlign.center,
                       style: const TextStyle(
                         color: Color(0xFF64748B),
@@ -189,7 +182,7 @@ class _ClinicDashboardState extends State<ClinicDashboard> {
               children: [
                 _buildBottomNavItem(
                   icon: Icons.add_circle_outline,
-                  label: _getLocalizedText(context, 'Add Patient Case', 'Add Patient\nCase'),
+                  label: AppLocalizations.of(context).t('add_patient_case'),
                   onTap: () {
                     Navigator.push(
                       context,
@@ -199,7 +192,7 @@ class _ClinicDashboardState extends State<ClinicDashboard> {
                 ),
                 _buildBottomNavItem(
                   icon: Icons.upload_file_outlined,
-                  label: _getLocalizedText(context, 'Upload Report', 'Upload Test\nResult'),
+                  label: AppLocalizations.of(context).t('nav_reports'),
                   onTap: () {
                     Navigator.push(
                       context,
@@ -209,14 +202,17 @@ class _ClinicDashboardState extends State<ClinicDashboard> {
                 ),
                 _buildBottomNavItem(
                   icon: Icons.report_outlined,
-                  label: _getLocalizedText(context, 'Report Outbreak', 'Report\nOutbreak'),
+                  label: AppLocalizations.of(context).t('report_outbreak'),
                   onTap: () {
-                    //todo
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => const ReportOutbreakPage()),
+                    );
                   },
                 ),
                 _buildBottomNavItem(
                   icon: Icons.request_page_outlined,
-                  label: _getLocalizedText(context, 'Resource Requests', 'Resource\nRequests'),
+                  label: AppLocalizations.of(context).t('resource_requests'),
                   onTap: () {
                     Navigator.push(
                       context,
