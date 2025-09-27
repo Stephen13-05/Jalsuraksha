@@ -28,16 +28,16 @@ class _AddPatientCasePageState extends State<AddPatientCasePage> {
   bool _isSaving = false;
   bool _isSubmitting = false;
 
-  final List<String> _genderOptions = ['male', 'female', 'other'];
+  final List<String> _genderOptions = ['Male', 'Female', 'Other'];
   final List<String> _symptomsOptions = [
-    'fever',
-    'diarrhea', 
-    'vomiting',
-    'abdominal_pain',
-    'dehydration',
-    'nausea',
-    'headache',
-    'fatigue'
+    'Fever',
+    'Diarrhea', 
+    'Vomiting',
+    'Abdominal_pain',
+    'Dehydration',
+    'Nausea',
+    'Headache',
+    'Fatigue'
   ];
 
   @override
@@ -67,7 +67,7 @@ class _AddPatientCasePageState extends State<AddPatientCasePage> {
   Future<void> _saveCase() async {
     if (!_formKey.currentState!.validate()) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(AppLocalizations.of(context).t('form_fix_errors'))),
+        SnackBar(content: Text(AppLocalizations.of(context).t('Form Fix Errors'))),
       );
       return;
     }
@@ -82,7 +82,7 @@ class _AddPatientCasePageState extends State<AddPatientCasePage> {
     
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(AppLocalizations.of(context).t('case_saved_successfully')),
+        content: Text(AppLocalizations.of(context).t('Case Saved Successfully')),
         backgroundColor: Colors.green,
       ),
     );
@@ -91,7 +91,7 @@ class _AddPatientCasePageState extends State<AddPatientCasePage> {
   Future<void> _submitReport() async {
     if (!_formKey.currentState!.validate()) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(AppLocalizations.of(context).t('form_fix_errors'))),
+        SnackBar(content: Text(AppLocalizations.of(context).t('Form Fix Errors'))),
       );
       return;
     }
@@ -106,7 +106,7 @@ class _AddPatientCasePageState extends State<AddPatientCasePage> {
     
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(AppLocalizations.of(context).t('report_submitted_successfully')),
+        content: Text(AppLocalizations.of(context).t('Report Submitted Successfully')),
         backgroundColor: Colors.green,
       ),
     );
@@ -212,7 +212,7 @@ class _AddPatientCasePageState extends State<AddPatientCasePage> {
       appBar: AppBar(
         elevation: 0,
         centerTitle: true,
-        title: Text(_getLocalizedText(context, 'add_patient_case', 'Add Patient Case')),
+        title: Text(localizations.t('Add Patient Case')),
         actions: [
           PopupMenuButton<String>(
             icon: const Icon(Icons.public, size: 20, color: Colors.black54),
@@ -252,7 +252,7 @@ class _AddPatientCasePageState extends State<AddPatientCasePage> {
                       children: [
                         // Patient Name/ID
                         Text(
-                          _getLocalizedText(context, 'patient_name_id', 'Patient Name/ID'),
+                          localizations.t('Patient Id'),
                           style: const TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.w500,
@@ -266,10 +266,10 @@ class _AddPatientCasePageState extends State<AddPatientCasePage> {
                             textInputAction: TextInputAction.next,
                             style: const TextStyle(fontSize: 16),
                             decoration: _filledDecoration(
-                              hint: _getLocalizedText(context, 'enter_patient_name_id', 'Enter Patient Name or ID'),
+                              hint: localizations.t('Enter Patient Id'),
                               prefixIcon: const Icon(Icons.person_outline, color: Color(0xFF9CA3AF), size: 22),
                             ),
-                            validator: (v) => (v == null || v.trim().isEmpty) ? _getLocalizedText(context, 'field_required', 'This field is required') : null,
+                            validator: (v) => (v == null || v.trim().isEmpty) ? _getLocalizedText(context, 'Field required', 'This field is required') : null,
                           ),
                         ),
                         const SizedBox(height: 16),
@@ -301,9 +301,9 @@ class _AddPatientCasePageState extends State<AddPatientCasePage> {
                                       textInputAction: TextInputAction.next,
                                       style: const TextStyle(fontSize: 16),
                                       decoration: _filledDecoration(
-                                        hint: localizations.t('enter_age'),
+                                        hint: localizations.t('Enter Age'),
                                       ),
-                                      validator: (v) => (v == null || v.trim().isEmpty) ? localizations.t('field_required') : null,
+                                      validator: (v) => (v == null || v.trim().isEmpty) ? localizations.t('Field required') : null,
                                     ),
                                   ),
                                 ],
@@ -312,11 +312,11 @@ class _AddPatientCasePageState extends State<AddPatientCasePage> {
                             const SizedBox(width: 12),
                             Expanded(
                               child: _dropdownField<String>(
-                                label: localizations.t('gender'),
+                                label: localizations.t('Gender'),
                                 value: _selectedGender,
                                 items: _genderOptions,
                                 onChanged: (val) => setState(() => _selectedGender = val),
-                                itemDisplayText: (item) => localizations.t('gender_$item'),
+                                itemDisplayText: (item) => localizations.t('$item'),
                               ),
                             ),
                           ],
@@ -325,17 +325,17 @@ class _AddPatientCasePageState extends State<AddPatientCasePage> {
 
                         // Symptoms
                         _dropdownField<String>(
-                          label: localizations.t('symptoms'),
+                          label: localizations.t('Symptoms'),
                           value: _selectedSymptoms,
                           items: _symptomsOptions,
                           onChanged: (val) => setState(() => _selectedSymptoms = val),
-                          itemDisplayText: (item) => localizations.t('symptom_$item'),
+                          itemDisplayText: (item) => localizations.t('$item'),
                         ),
                         const SizedBox(height: 16),
 
                         // Disease Predicted
                         Text(
-                          localizations.t('disease_predicted'),
+                          localizations.t('Disease Predicted'),
                           style: const TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.w500,
@@ -349,17 +349,17 @@ class _AddPatientCasePageState extends State<AddPatientCasePage> {
                             textInputAction: TextInputAction.next,
                             style: const TextStyle(fontSize: 16),
                             decoration: _filledDecoration(
-                              hint: localizations.t('disease_name'),
+                              hint: localizations.t('Disease Name'),
                               prefixIcon: const Icon(Icons.medical_services_outlined, color: Color(0xFF9CA3AF), size: 22),
                             ),
-                            validator: (v) => (v == null || v.trim().isEmpty) ? localizations.t('field_required') : null,
+                            validator: (v) => (v == null || v.trim().isEmpty) ? localizations.t('Field Required') : null,
                           ),
                         ),
                         const SizedBox(height: 16),
 
                         // Date of Onset
                         Text(
-                          localizations.t('date_of_onset'),
+                          localizations.t('Date of Onset'),
                           style: const TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.w500,
@@ -384,7 +384,7 @@ class _AddPatientCasePageState extends State<AddPatientCasePage> {
                                   child: Text(
                                     _selectedDate != null
                                         ? '${_selectedDate!.day}/${_selectedDate!.month}/${_selectedDate!.year}'
-                                        : localizations.t('select_date'),
+                                        : localizations.t('Select Date'),
                                     style: TextStyle(
                                       fontSize: 16,
                                       color: _selectedDate != null ? Colors.black87 : const Color(0xFF9CA3AF),
@@ -400,7 +400,7 @@ class _AddPatientCasePageState extends State<AddPatientCasePage> {
 
                         // Village/Ward
                         Text(
-                          localizations.t('village_ward'),
+                          localizations.t('Village Ward'),
                           style: const TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.w500,
@@ -414,17 +414,17 @@ class _AddPatientCasePageState extends State<AddPatientCasePage> {
                             textInputAction: TextInputAction.next,
                             style: const TextStyle(fontSize: 16),
                             decoration: _filledDecoration(
-                              hint: localizations.t('enter_village_ward'),
+                              hint: localizations.t('Enter Village Ward'),
                               prefixIcon: const Icon(Icons.location_on_outlined, color: Color(0xFF9CA3AF), size: 22),
                             ),
-                            validator: (v) => (v == null || v.trim().isEmpty) ? localizations.t('field_required') : null,
+                            validator: (v) => (v == null || v.trim().isEmpty) ? localizations.t('Field required') : null,
                           ),
                         ),
                         const SizedBox(height: 16),
 
                         // Treatment Given
                         Text(
-                          localizations.t('treatment_given'),
+                          localizations.t('Treatment Given'),
                           style: const TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.w500,
@@ -445,10 +445,10 @@ class _AddPatientCasePageState extends State<AddPatientCasePage> {
                             textInputAction: TextInputAction.newline,
                             style: const TextStyle(fontSize: 16),
                             decoration: _filledDecoration(
-                              hint: localizations.t('enter_treatment_details'),
+                              hint: localizations.t('Enter Treatment Details'),
                               prefixIcon: const Icon(Icons.healing_outlined, color: Color(0xFF9CA3AF), size: 22),
                             ),
-                            validator: (v) => (v == null || v.trim().isEmpty) ? localizations.t('field_required') : null,
+                            validator: (v) => (v == null || v.trim().isEmpty) ? localizations.t('Field required') : null,
                           ),
                         ),
                         const SizedBox(height: 24),
@@ -482,7 +482,7 @@ class _AddPatientCasePageState extends State<AddPatientCasePage> {
                                 ),
                               )
                             : Text(
-                                localizations.t('save_case'),
+                                localizations.t('Save Case'),
                                 style: const TextStyle(
                                   fontSize: 16,
                                   fontWeight: FontWeight.w600,
@@ -514,7 +514,7 @@ class _AddPatientCasePageState extends State<AddPatientCasePage> {
                                 ),
                               )
                             : Text(
-                                localizations.t('submit_report'),
+                                localizations.t('Submit Report'),
                                 style: const TextStyle(
                                   fontSize: 16,
                                   fontWeight: FontWeight.w600,

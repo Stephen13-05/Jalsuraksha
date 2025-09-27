@@ -29,9 +29,9 @@ class _ClinicLoginPageState extends State<ClinicLoginPage> {
   bool _isValidPhone(String input) => RegExp(r'^[0-9]{10}$').hasMatch(input);
   
   bool _isValidPassword(String input) {
-    // Password must be at least 8 characters and contain both letters and numbers
-    return input.length >= 8 && 
-           RegExp(r'^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d@$!%*?&]{8,}$').hasMatch(input);
+    // Password must be exactly 8 characters and contain both letters and numbers
+    return input.length == 8 &&
+      RegExp(r'^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d@$!%*?&]{8}').hasMatch(input);
   }
 
   String _getLocalizedText(BuildContext context, String key, String fallback) {
@@ -61,10 +61,10 @@ class _ClinicLoginPageState extends State<ClinicLoginPage> {
     
     // Navigate to dashboard after successful login
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Login successful!'),
+      SnackBar(
+        content: Text(_getLocalizedText(context, 'Login Successful', 'Login successful!')),
         backgroundColor: Colors.green,
-        duration: Duration(seconds: 1),
+        duration: const Duration(seconds: 1),
       ),
     );
     
@@ -111,7 +111,7 @@ class _ClinicLoginPageState extends State<ClinicLoginPage> {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          _getLocalizedText(context, 'clinic_login', 'Clinic Login')
+          _getLocalizedText(context, 'Clinic Login', 'Clinic Login')
         ),
         centerTitle: true,
         elevation: 0,
@@ -198,15 +198,18 @@ class _ClinicLoginPageState extends State<ClinicLoginPage> {
               ),
               const SizedBox(height: 12),
               
-              // Password Field
+              // Password Field - EXACTLY 8 characters
               _boxedField(
                 child: TextFormField(
                   controller: _passwordController,
                   obscureText: _obscurePassword,
                   textInputAction: TextInputAction.done,
                   style: const TextStyle(fontSize: 16),
+                  inputFormatters: [
+                    LengthLimitingTextInputFormatter(8),
+                  ],
                   decoration: _filledDecoration(
-                    hint: _getLocalizedText(context, 'password', 'Password'),
+                    hint: _getLocalizedText(context, 'Password', 'Password'),
                     prefixIcon: const Icon(Icons.lock_outline, color: Color(0xFF9CA3AF), size: 22),
                     suffixIcon: IconButton(
                       icon: Icon(
@@ -225,7 +228,7 @@ class _ClinicLoginPageState extends State<ClinicLoginPage> {
                       return _getLocalizedText(context, 'field_required', 'This field is required');
                     }
                     if (!_isValidPassword(value)) {
-                      return _getLocalizedText(context, 'password_validation_error', 'Password must be 8+ characters with letters and numbers');
+                      return _getLocalizedText(context, 'password_length_exact', 'Password must be exactly 8 characters');
                     }
                     return null;
                   },
@@ -239,7 +242,7 @@ class _ClinicLoginPageState extends State<ClinicLoginPage> {
                     // TODO: Implement forgot password
                   },
                   child: Text(
-                    _getLocalizedText(context, 'forgot_password', 'Forgot Password?'),
+                    _getLocalizedText(context, 'Forgot Password', 'Forgot Password?'),
                     style: const TextStyle(
                       color: Color(0xFF3B82F6),
                       fontWeight: FontWeight.w500,
@@ -268,7 +271,7 @@ class _ClinicLoginPageState extends State<ClinicLoginPage> {
                         ),
                       )
                     : Text(
-                        _getLocalizedText(context, 'login', 'Login'),
+                        _getLocalizedText(context, 'Login', 'Login'),
                         style: const TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w600,
@@ -284,7 +287,7 @@ class _ClinicLoginPageState extends State<ClinicLoginPage> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Text(
-                      _getLocalizedText(context, 'dont_have_account', "Don't have an account? "),
+                      _getLocalizedText(context, "Don't have Account?", "Don't have an account? "),
                       style: const TextStyle(
                         fontSize: 14, 
                         color: Colors.black87,
@@ -304,12 +307,12 @@ class _ClinicLoginPageState extends State<ClinicLoginPage> {
                         tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                       ),
                       child: Text(
-                        _getLocalizedText(context, 'sign_up', 'Sign Up'),
+                        _getLocalizedText(context, 'Sign Up', 'Sign Up'),
                         style: const TextStyle(
                           fontSize: 14,
-                          color: Color(0xFF3B82F6),
+                          color: Color(0xFF22C55E),
                           fontWeight: FontWeight.w600,
-                          decoration: TextDecoration.underline,
+                          //decoration: TextDecoration.underline,
                         ),
                       ),
                     ),
