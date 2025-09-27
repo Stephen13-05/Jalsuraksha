@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:app/l10n/app_localizations.dart';
 import 'package:app/frontend/Localclincs/AddPatientCase.dart';
+import 'package:app/frontend/Localclincs/ReportOutbreak.dart';
+import 'package:app/frontend/Localclincs/ResourceRequest.dart';
 import 'package:app/locale/locale_controller.dart';
 
 class ClinicDashboard extends StatefulWidget {
@@ -206,14 +208,20 @@ class _ClinicDashboardState extends State<ClinicDashboard> {
                   icon: Icons.report_outlined,
                   label: _getLocalizedText(context, 'report_outbreak', 'Report\nOutbreak'),
                   onTap: () {
-                    // TODO: Navigate to Report Outbreak
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => const ReportOutbreakPage()),
+                    );
                   },
                 ),
                 _buildBottomNavItem(
                   icon: Icons.request_page_outlined,
                   label: _getLocalizedText(context, 'resource_requests', 'Resource\nRequests'),
                   onTap: () {
-                    // TODO: Navigate to Resource Requests
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => const ResourceRequestPage()),
+                    );
                   },
                 ),
               ],

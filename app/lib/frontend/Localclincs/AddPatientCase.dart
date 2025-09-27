@@ -212,7 +212,7 @@ class _AddPatientCasePageState extends State<AddPatientCasePage> {
       appBar: AppBar(
         elevation: 0,
         centerTitle: true,
-        title: Text(localizations.t('add_patient_case')),
+        title: Text(_getLocalizedText(context, 'add_patient_case', 'Add Patient Case')),
         actions: [
           PopupMenuButton<String>(
             icon: const Icon(Icons.public, size: 20, color: Colors.black54),
@@ -252,7 +252,7 @@ class _AddPatientCasePageState extends State<AddPatientCasePage> {
                       children: [
                         // Patient Name/ID
                         Text(
-                          localizations.t('patient_name_id'),
+                          _getLocalizedText(context, 'patient_name_id', 'Patient Name/ID'),
                           style: const TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.w500,
@@ -266,10 +266,10 @@ class _AddPatientCasePageState extends State<AddPatientCasePage> {
                             textInputAction: TextInputAction.next,
                             style: const TextStyle(fontSize: 16),
                             decoration: _filledDecoration(
-                              hint: localizations.t('enter_patient_name_id'),
+                              hint: _getLocalizedText(context, 'enter_patient_name_id', 'Enter Patient Name or ID'),
                               prefixIcon: const Icon(Icons.person_outline, color: Color(0xFF9CA3AF), size: 22),
                             ),
-                            validator: (v) => (v == null || v.trim().isEmpty) ? localizations.t('field_required') : null,
+                            validator: (v) => (v == null || v.trim().isEmpty) ? _getLocalizedText(context, 'field_required', 'This field is required') : null,
                           ),
                         ),
                         const SizedBox(height: 16),
