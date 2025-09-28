@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:app/l10n/app_localizations.dart';
-import 'package:app/locale/locale_controller.dart';
 import 'package:app/frontend/ashaworkers/reports.dart';
 import 'package:app/frontend/ashaworkers/profile.dart';
 import 'package:app/frontend/ashaworkers/data_collection.dart';
-import 'package:app/frontend/ashaworkers/analytics.dart';
 import 'package:app/frontend/ashaworkers/login.dart';
+import 'package:app/frontend/ashaworkers/navigation.dart';
+import 'package:app/frontend/ashaworkers/bluetooth_sync.dart';
+import 'package:app/frontend/ashaworkers/offline_sync.dart';
 import 'package:app/services/dashboard_service.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
@@ -34,8 +35,129 @@ class AshaWorkerHomePage extends StatefulWidget {
   State<AshaWorkerHomePage> createState() => _AshaWorkerHomePageState();
 }
 
+class _InsightRow extends StatelessWidget {
+  final IconData icon;
+  final String text;
+  const _InsightRow({required this.icon, required this.text});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        children: [
+          Icon(icon, size: 20, color: Theme.of(context).colorScheme.primary),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              text,
+              style: const TextStyle(fontSize: 14, color: Color(0xFF374151)),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _RecentReportCard extends StatelessWidget {
+  final String title;
+  final num households;
+  final bool synced;
+  final String village;
+  final String riskLabel;
+  final Color riskColor;
+  final VoidCallback onTap;
+
+  const _RecentReportCard({
+    required this.title,
+    required this.households,
+    required this.synced,
+    required this.village,
+    required this.riskLabel,
+    required this.riskColor,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      borderRadius: BorderRadius.circular(16),
+      onTap: onTap,
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: const [
+            BoxShadow(color: Color(0x14000000), blurRadius: 10, offset: Offset(0, 6)),
+          ],
+          border: Border.all(color: const Color(0xFFE2E8F0)),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    village,
+                    style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  decoration: BoxDecoration(
+                    color: riskColor.withOpacity(0.12),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Text(
+                    riskLabel,
+                    style: TextStyle(color: riskColor, fontSize: 11, fontWeight: FontWeight.w700),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Text(title, style: const TextStyle(fontSize: 12, color: Color(0xFF6B7280))),
+            const SizedBox(height: 10),
+            Row(
+              children: [
+                CircleAvatar(
+                  radius: 18,
+                  backgroundColor: const Color(0xFFE0F2FE),
+                  child: Text(
+                    households.toString(),
+                    style: const TextStyle(fontWeight: FontWeight.w800, color: Color(0xFF0EA5E9)),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text('Households', style: TextStyle(fontSize: 12, color: Color(0xFF6B7280))),
+                      Text(
+                        'Status: ${synced ? 'Synced' : 'Pending'}',
+                        style: const TextStyle(fontSize: 12, color: Color(0xFF111827)),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 class _AshaWorkerHomePageState extends State<AshaWorkerHomePage> with SingleTickerProviderStateMixin {
-  int _currentIndex = 0;
+  AshaNavTab _currentTab = AshaNavTab.home;
   final _dashboard = DashboardService();
 
   Future<String>? _riskFuture;
@@ -198,7 +320,7 @@ class _AshaWorkerHomePageState extends State<AshaWorkerHomePage> with SingleTick
         }
         if (uid != null && uid.isNotEmpty) {
           _countsFuture = _computeCounts(uid);
-          _recentReportsFuture = _fetchRecentReportsByUser(uid, limit: 5);
+          _recentReportsFuture = _fetchRecentReportsByUser(uid, limit: 3);
         } else {
           _countsFuture = Future.value((daily: 0, weekly: 0, monthly: 0));
           _recentReportsFuture = Future.value(const []);
@@ -298,34 +420,30 @@ class _AshaWorkerHomePageState extends State<AshaWorkerHomePage> with SingleTick
     return Scaffold(
       appBar: AppBar(
         elevation: 0,
-        centerTitle: true,
+        backgroundColor: Colors.transparent,
+        flexibleSpace: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(colors: [
+              Theme.of(context).colorScheme.primary,
+              Theme.of(context).colorScheme.primary.withOpacity(0.85),
+            ]),
+          ),
+        ),
+        iconTheme: const IconThemeData(color: Colors.white),
+        leading: Builder(
+          builder: (ctx) => IconButton(
+            icon: const Icon(Icons.menu),
+            onPressed: () => Scaffold.of(ctx).openDrawer(),
+          ),
+        ),
         title: Text(
           t('nav_home_title'),
           style: const TextStyle(
             fontWeight: FontWeight.w600,
+            color: Colors.white,
           ),
         ),
         actions: [
-          // Globe language selector
-          PopupMenuButton<String>(
-            icon: const Icon(Icons.public),
-            onSelected: (code) {
-              switch (code) {
-                case 'ne':
-                case 'en':
-                case 'as':
-                case 'hi':
-                  LocaleController.instance.setLocale(Locale(code));
-                  break;
-              }
-            },
-            itemBuilder: (context) => const [
-              PopupMenuItem(value: 'ne', child: Text('नेपाली')),
-              PopupMenuItem(value: 'en', child: Text('English')),
-              PopupMenuItem(value: 'as', child: Text('অসমীয়া')),
-              PopupMenuItem(value: 'hi', child: Text('हिन्दी')),
-            ],
-          ),
           IconButton(
             icon: const Icon(Icons.logout),
             tooltip: 'Logout',
@@ -342,74 +460,28 @@ class _AshaWorkerHomePageState extends State<AshaWorkerHomePage> with SingleTick
           const SizedBox(width: 8),
         ],
       ),
+      drawer: AshaNavDrawer(
+        currentTab: _currentTab,
+        onSelectTab: _handleNavSelection,
+        onBluetoothSync: _openBluetoothSync,
+        onOfflineSync: _openOfflineSync,
+        onChangeLanguage: () => showLanguagePicker(context),
+      ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Header Card
-            const SizedBox(height: 8),
-            if (_uid != null) FutureBuilder<({int today, int week, int month})>(
-              future: _fetchAshaCollectedCounts(_uid!),
-              builder: (context, asnap) {
-                if (!asnap.hasData) return const SizedBox.shrink();
-                return Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(12),
-                    boxShadow: const [BoxShadow(color: Color(0x14000000), blurRadius: 6, offset: Offset(0, 2))],
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text('Your data collected', style: TextStyle(fontWeight: FontWeight.w800)),
-                      const SizedBox(height: 8),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceAround,
-                        children: [
-                          _InfoChip(icon: Icons.today, label: 'Today: ${asnap.data!.today}'),
-                          _InfoChip(icon: Icons.view_week, label: 'Week: ${asnap.data!.week}'),
-                          _InfoChip(icon: Icons.calendar_view_month, label: 'Month: ${asnap.data!.month}'),
-                        ],
-                      ),
-                    ],
-                  ),
-                );
-              },
-            ),
-
-            const SizedBox(height: 8),
-            if ((_district != null) && (_village != null)) FutureBuilder<({int daily, int weekly, int monthly})>(
-              future: _fetchVillageCasesCounts(_district!, _village!),
-              builder: (context, csnap) {
-                if (!csnap.hasData) return const SizedBox.shrink();
-                return Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(12),
-                    boxShadow: const [BoxShadow(color: Color(0x14000000), blurRadius: 6, offset: Offset(0, 2))],
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceAround,
-                    children: [
-                      _InfoChip(icon: Icons.local_hospital, label: 'Daily: ${csnap.data!.daily}'),
-                      _InfoChip(icon: Icons.view_week, label: 'Weekly: ${csnap.data!.weekly}'),
-                      _InfoChip(icon: Icons.calendar_view_month, label: 'Monthly: ${csnap.data!.monthly}'),
-                    ],
-                  ),
-                );
-              },
-            ),
             Container(
               width: double.infinity,
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: Colors.white,
+                gradient: LinearGradient(colors: [
+                  Theme.of(context).colorScheme.primary.withOpacity(0.28),
+                  Theme.of(context).colorScheme.secondary.withOpacity(0.22),
+                ]),
                 borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: Theme.of(context).colorScheme.primary.withOpacity(0.45)),
                 boxShadow: const [
                   BoxShadow(color: Color(0x14000000), blurRadius: 8, offset: Offset(0, 2)),
                 ],
@@ -442,13 +514,46 @@ class _AshaWorkerHomePageState extends State<AshaWorkerHomePage> with SingleTick
                 final daily = snapshot.data?.daily ?? 0;
                 final weekly = snapshot.data?.weekly ?? 0;
                 final monthly = snapshot.data?.monthly ?? 0;
-                return Row(
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Expanded(child: _StatCard(title: t('daily_cases'), value: daily.toString(), color: const Color(0xFF0EA5E9))),
-                    const SizedBox(width: 12),
-                    Expanded(child: _StatCard(title: t('weekly_cases'), value: weekly.toString(), color: const Color(0xFFF59E0B))),
-                    const SizedBox(width: 12),
-                    Expanded(child: _StatCard(title: t('monthly_cases'), value: monthly.toString(), color: const Color(0xFF22C55E))),
+                    Text(
+                      'Analytics snapshot',
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
+                    ),
+                    const SizedBox(height: 12),
+                    Row(
+                      children: [
+                        Expanded(child: _StatCard(title: 'Today', value: daily.toString(), color: const Color(0xFF0EA5E9))),
+                        const SizedBox(width: 12),
+                        Expanded(child: _StatCard(title: 'This Week', value: weekly.toString(), color: const Color(0xFFF59E0B))),
+                        const SizedBox(width: 12),
+                        Expanded(child: _StatCard(title: 'This Month', value: monthly.toString(), color: const Color(0xFF22C55E))),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: const Color(0xFFE5E7EB)),
+                        boxShadow: const [
+                          BoxShadow(color: Color(0x11000000), blurRadius: 8, offset: Offset(0, 3)),
+                        ],
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text('Key insights', style: TextStyle(fontWeight: FontWeight.w700)),
+                          const SizedBox(height: 8),
+                          _InsightRow(icon: Icons.trending_up, text: 'Daily collections are up to $daily households today.'),
+                          _InsightRow(icon: Icons.timeline, text: 'Weekly follow-ups completed: $weekly households.'),
+                          _InsightRow(icon: Icons.task_alt, text: 'Monthly coverage: $monthly home visits recorded.'),
+                        ],
+                      ),
+                    ),
                   ],
                 );
               },
@@ -482,13 +587,13 @@ class _AshaWorkerHomePageState extends State<AshaWorkerHomePage> with SingleTick
                   width: double.infinity,
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    color: rc.withOpacity(0.12),
+                    gradient: LinearGradient(colors: [rc.withOpacity(0.35), rc.withOpacity(0.20)]),
                     borderRadius: BorderRadius.circular(16),
                     border: Border.all(color: rc, width: 1.2),
                   ),
                   child: Row(
                     children: [
-                      Icon(Icons.shield_outlined, color: rc),
+                      Icon(Icons.shield_outlined, color: rc, size: 28),
                       const SizedBox(width: 12),
                       Expanded(
                         child: Text('$rl ${t('for')} $village',
@@ -539,21 +644,12 @@ class _AshaWorkerHomePageState extends State<AshaWorkerHomePage> with SingleTick
                     return FutureBuilder<({String risk, Map<String, dynamic>? latest, Map<String, dynamic>? daily, List<dynamic>? reasons})>(
                       future: _villageStatusFuture,
                       builder: (context, vs) {
-                        String r = (vs.data?.risk ?? (risk.isNotEmpty ? risk : 'low')).toLowerCase();
-                        Color rc;
-                        switch (r) {
-                          case 'high':
-                          case 'red':
-                            rc = const Color(0xFFEF4444);
-                            break;
-                          case 'medium':
-                          case 'yellow':
-                            rc = const Color(0xFFF59E0B);
-                            break;
-                          default:
-                            rc = const Color(0xFF22C55E);
+                        if (!vs.hasData) {
+                          return const Center(child: CircularProgressIndicator());
                         }
-
+                        final data = vs.data;
+                        final resolvedRisk = (data?.risk ?? risk).toLowerCase();
+                        final markerColor = _riskColorFrom(resolvedRisk);
                         return FlutterMap(
                           options: MapOptions(initialCenter: pos, initialZoom: 13),
                           children: [
@@ -565,11 +661,18 @@ class _AshaWorkerHomePageState extends State<AshaWorkerHomePage> with SingleTick
                             MarkerLayer(markers: [
                               Marker(
                                 point: pos,
-                                width: 60,
-                                height: 60,
+                                width: 100,
+                                height: 100,
                                 child: GestureDetector(
-                                  onTap: () => _showRiskDetailsSheet(context, village ?? '-', r, vs.data?.latest, vs.data?.daily, vs.data?.reasons),
-                                  child: _RiskMarker(color: rc, animation: _pulseCtrl),
+                                  onTap: () => _showRiskDetailsSheet(
+                                    context,
+                                    village ?? '-',
+                                    resolvedRisk,
+                                    data?.latest,
+                                    data?.daily,
+                                    data?.reasons,
+                                  ),
+                                  child: _RiskMarker(color: markerColor, animation: _pulseCtrl),
                                 ),
                               ),
                             ]),
@@ -582,58 +685,11 @@ class _AshaWorkerHomePageState extends State<AshaWorkerHomePage> with SingleTick
               ),
             ),
 
-            const SizedBox(height: 12),
-            // Latest water metrics card from Firestore (optional if available)
-            FutureBuilder<({String risk, Map<String, dynamic>? latest, Map<String, dynamic>? daily, List<dynamic>? reasons})>(
-              future: _villageStatusFuture,
-              builder: (context, vs) {
-                if (!vs.hasData || vs.data?.latest == null) return const SizedBox.shrink();
-                final latest = vs.data!.latest!;
-                final ph = latest['ph'];
-                final turb = latest['turbidity'];
-                final ecoli = latest['ecoli'] == true;
-                final cases = latest['daily_cases'] ?? 0;
-                final daily = vs.data!.daily;
-                return Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(12),
-                    boxShadow: const [BoxShadow(color: Color(0x14000000), blurRadius: 6, offset: Offset(0, 2))],
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceAround,
-                        children: [
-                          _InfoChip(icon: Icons.science, label: 'pH: ${ph ?? '-'}'),
-                          _InfoChip(icon: Icons.opacity, label: 'NTU: ${turb ?? '-'}'),
-                          _InfoChip(icon: Icons.bloodtype, label: 'E. coli: ${ecoli ? 'Yes' : 'No'}'),
-                          _InfoChip(icon: Icons.local_hospital, label: 'Cases: $cases'),
-                        ],
-                      ),
-                      if (daily != null) ...[
-                        const SizedBox(height: 8),
-                        Wrap(spacing: 8, runSpacing: 8, children: [
-                          _metricChip(Icons.grain, 'Daily Rain', '${daily['rainfall_total_mm'] ?? 0} mm'),
-                          _metricChip(Icons.timeline, 'Avg pH', '${daily['avg_ph'] ?? '-'}'),
-                          _metricChip(Icons.stacked_line_chart, 'Avg NTU', '${daily['avg_turbidity'] ?? '-'}'),
-                          _metricChip(Icons.check_circle, 'E. coli (daily)', (daily['ecoli_present'] == true) ? 'Present' : 'Absent'),
-                        ]),
-                      ]
-                    ],
-                  ),
-                );
-              },
-            ),
-
             const SizedBox(height: 8),
             GestureDetector(
               onTap: () async {
                 final vs = await _villageStatusFuture;
-                _showRiskDetailsSheet(context, village ?? '-', vs?.risk ?? 'green', vs?.latest, vs?.daily, vs?.reasons);
+                _showRiskDetailsSheet(context, village ?? '-', (vs?.risk ?? risk).toLowerCase(), vs?.latest, vs?.daily, vs?.reasons);
               },
               child: Center(
                 child: Text(
@@ -668,74 +724,82 @@ class _AshaWorkerHomePageState extends State<AshaWorkerHomePage> with SingleTick
                 if (items.isEmpty) {
                   return Text(t('no_recent_reports'), style: TextStyle(color: Colors.grey.shade600));
                 }
+                final list = items.take(3).toList();
                 return Column(
                   children: [
-                    for (int i = 0; i < items.length; i++) ...[
-                      _ReportRow(
-                        dateTime: _fmtDate(items[i]['createdAt']),
-                        subText: '${items[i]['count'] ?? items[i]['cases'] ?? 0} ' + AppLocalizations.of(context).t('reports_collected_suffix'),
-                        synced: (items[i]['synced'] ?? true) == true,
+                    for (final item in list)
+                      Builder(
+                        builder: (ctx) {
+                          final itemRisk = (item['riskLevel'] ?? risk).toString();
+                          final itemColor = _riskColorFrom(itemRisk);
+                          final itemLabel = _riskLabelFrom(itemRisk);
+                          return Padding(
+                            padding: const EdgeInsets.only(bottom: 12),
+                            child: _RecentReportCard(
+                              title: _fmtDate(item['createdAt']),
+                              households: (item['count'] ?? item['cases'] ?? 0) as num,
+                              synced: (item['synced'] ?? true) == true,
+                              village: (item['village'] ?? village ?? '-') as String,
+                              riskLabel: itemLabel,
+                              riskColor: itemColor,
+                              onTap: () => _showReportDetailsBottomSheet(context, Map<String, dynamic>.from(item)),
+                            ),
+                          );
+                        },
                       ),
-                      if (i != items.length - 1) const SizedBox(height: 14),
-                    ],
                   ],
                 );
               },
             ),
-
             const SizedBox(height: 12),
           ],
         ),
       ),
 
-      // Bottom Navigation (5 tabs)
-      bottomNavigationBar: Container(
-        decoration: const BoxDecoration(
-          border: Border(top: BorderSide(color: Color(0xFFE5E7EB))),
-        ),
-        child: BottomNavigationBar(
-          currentIndex: _currentIndex,
-          onTap: (i) {
-            setState(() => _currentIndex = i);
-            if (i == 1) {
-              Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (_) => const AshaWorkerDataCollectionPage(),
-                ),
-              );
-            } else if (i == 2) {
-              Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (_) => const AshaWorkerReportsPage(),
-                ),
-              );
-            } else if (i == 3) {
-              Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (_) => const AshaWorkerAnalyticsPage(),
-                ),
-              );
-            } else if (i == 4) {
-              Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (_) => const AshaWorkerProfilePage(),
-                ),
-              );
-            }
-          },
-          type: BottomNavigationBarType.fixed,
-          selectedItemColor: cs.primary,
-          unselectedItemColor: const Color(0xFF9CA3AF),
-          showUnselectedLabels: true,
-          items: [
-            BottomNavigationBarItem(icon: const Icon(Icons.home_rounded), label: t('nav_home_title')),
-            BottomNavigationBarItem(icon: const Icon(Icons.fact_check_outlined), label: t('nav_data_collection')),
-            BottomNavigationBarItem(icon: const Icon(Icons.receipt_long_outlined), label: t('nav_reports')),
-            BottomNavigationBarItem(icon: const Icon(Icons.insert_chart_outlined), label: t('nav_analytics')),
-            BottomNavigationBarItem(icon: const Icon(Icons.person_outline_rounded), label: t('nav_profile')),
-          ],
-        ),
-      ),
+      floatingActionButton: null,
+      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
+    );
+  }
+
+  void _handleNavSelection(AshaNavTab tab) {
+    if (tab == _currentTab) return;
+    switch (tab) {
+      case AshaNavTab.home:
+        setState(() => _currentTab = AshaNavTab.home);
+        break;
+      case AshaNavTab.dataCollection:
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (_) => const AshaWorkerDataCollectionPage()),
+        );
+        break;
+      case AshaNavTab.reports:
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (_) => const AshaWorkerReportsPage()),
+        );
+        break;
+      case AshaNavTab.profile:
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (_) => const AshaWorkerProfilePage()),
+        );
+        break;
+    }
+  }
+
+  void _openBluetoothSync() {
+    Navigator.of(context).push(
+      MaterialPageRoute(builder: (_) => const AshaWorkerBluetoothSyncPage()),
+    );
+  }
+
+  void _openOfflineSync() {
+    Navigator.of(context).push(
+      MaterialPageRoute(builder: (_) => const AshaWorkerOfflineSyncPage()),
+    );
+  }
+
+  void _showSnack(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message)),
     );
   }
 
@@ -772,20 +836,38 @@ class _AshaWorkerHomePageState extends State<AshaWorkerHomePage> with SingleTick
   }
 
   Widget _metricChip(IconData icon, String label, String value) {
+    // Colorize chip based on label/value, without changing content
+    final l = label.toLowerCase();
+    Color bg = const Color(0xFFF8FAFC);
+    Color ic = const Color(0xFF64748B);
+    if (l.contains('ph')) {
+      bg = const Color(0xFFE0F2FE); // sky-100
+      ic = const Color(0xFF0EA5E9); // sky-500
+    } else if (l.contains('ntu')) {
+      bg = const Color(0xFFE6FFFA); // teal-50
+      ic = const Color(0xFF14B8A6); // teal-500
+    } else if (l.contains('e. coli')) {
+      final yes = value.toLowerCase().startsWith('y');
+      bg = yes ? const Color(0xFFFFE4E6) : const Color(0xFFECFDF5); // red-100 or emerald-50
+      ic = yes ? const Color(0xFFEF4444) : const Color(0xFF22C55E); // red-500 or emerald-500
+    } else if (l.contains('cases')) {
+      bg = const Color(0xFFFFFBEB); // amber-50
+      ic = const Color(0xFFF59E0B); // amber-500
+    }
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
-        color: const Color(0xFFF8FAFC),
+        color: bg,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: const Color(0xFFE5E7EB)),
+        border: Border.all(color: ic.withOpacity(0.35)),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 18, color: const Color(0xFF64748B)),
+          Icon(icon, size: 18, color: ic),
           const SizedBox(width: 8),
-          Text('$label: ', style: const TextStyle(color: Color(0xFF64748B), fontWeight: FontWeight.w600)),
-          Text(value, style: const TextStyle(fontWeight: FontWeight.w800)),
+          Text('$label: ', style: TextStyle(color: ic.withOpacity(0.9), fontWeight: FontWeight.w700)),
+          Text(value, style: const TextStyle(fontWeight: FontWeight.w900, color: Colors.black87)),
         ],
       ),
     );
@@ -871,6 +953,99 @@ class _AshaWorkerHomePageState extends State<AshaWorkerHomePage> with SingleTick
     );
   }
 
+  void _showReportDetailsBottomSheet(BuildContext context, Map<String, dynamic> report) {
+    final t = AppLocalizations.of(context).t;
+    final createdAt = _fmtDate(report['createdAt']);
+    final households = (report['count'] ?? report['cases'] ?? 0).toString();
+    final synced = (report['synced'] ?? true) == true;
+    final riskValue = (report['riskLevel'] ?? '').toString();
+    final color = _riskColorFrom(riskValue.isEmpty ? 'low' : riskValue);
+    final riskLabel = _riskLabelFrom(riskValue.isEmpty ? 'low' : riskValue);
+    final village = report['village']?.toString() ?? (_village ?? '-');
+
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(18)),
+      ),
+      builder: (ctx) {
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.all(18),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: color.withOpacity(0.12),
+                        borderRadius: BorderRadius.circular(14),
+                        border: Border.all(color: color),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.shield_outlined, size: 16, color: color),
+                          const SizedBox(width: 6),
+                          Text(riskLabel, style: TextStyle(color: color, fontWeight: FontWeight.w700)),
+                        ],
+                      ),
+                    ),
+                    const Spacer(),
+                    IconButton(
+                      onPressed: () => Navigator.pop(ctx),
+                      icon: const Icon(Icons.close_rounded),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                Text(t('recent_report_details'), style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800)),
+                const SizedBox(height: 12),
+                _kvRow(t('village'), village),
+                _kvRow(t('submitted_on'), createdAt),
+                _kvRow(t('household_count'), households),
+                _kvRow(t('status'), synced ? t('synced') : t('not_synced')),
+                if (report['notes'] != null) _kvRow(t('notes'), report['notes'].toString()),
+                const SizedBox(height: 20),
+                SizedBox(
+                  width: double.infinity,
+                  child: OutlinedButton.icon(
+                    onPressed: () => Navigator.pop(ctx),
+                    icon: const Icon(Icons.visibility_outlined),
+                    label: Text(t('view_full_report')),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _kvRow(String key, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 6),
+      child: Row(
+        children: [
+          SizedBox(
+            width: 140,
+            child: Text(key, style: const TextStyle(color: Color(0xFF6B7280))),
+          ),
+          Expanded(
+            child: Text(
+              value,
+              style: const TextStyle(fontWeight: FontWeight.w700),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
 }
 
 class _RiskMarker extends StatelessWidget {
@@ -884,7 +1059,7 @@ class _RiskMarker extends StatelessWidget {
       animation: animation,
       builder: (context, _) {
         final t = animation.value; // 0..1
-        final outerSize = 46 + 14 * t;
+        final outerSize = 86 + 22 * t; // bigger pulse
         final opacity = (1.0 - t).clamp(0.0, 1.0);
         return Stack(
           alignment: Alignment.center,
@@ -901,8 +1076,8 @@ class _RiskMarker extends StatelessWidget {
             ),
             // Core glow
             Container(
-              width: 42,
-              height: 42,
+              width: 58,
+              height: 58,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 gradient: RadialGradient(colors: [color.withOpacity(0.35), color.withOpacity(0.15)], radius: 0.85),
@@ -910,7 +1085,7 @@ class _RiskMarker extends StatelessWidget {
               ),
             ),
             // Pin icon
-            Icon(Icons.location_on, color: color, size: 26),
+            Icon(Icons.location_on, color: color, size: 34),
           ],
         );
       },
@@ -927,22 +1102,36 @@ class _StatCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: Colors.white,
+        gradient: LinearGradient(colors: [
+          color.withOpacity(0.95),
+          color.withOpacity(0.75),
+        ]),
         borderRadius: BorderRadius.circular(16),
-        boxShadow: const [BoxShadow(color: Color(0x14000000), blurRadius: 6, offset: Offset(0, 2))],
+        boxShadow: [
+          BoxShadow(color: color.withOpacity(0.30), blurRadius: 14, offset: const Offset(0, 6)),
+        ],
+        border: Border.all(color: Colors.white.withOpacity(0.18)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(title, style: const TextStyle(fontSize: 12, color: Color(0xFF6B7280), fontWeight: FontWeight.w600)),
+          Text(title, style: const TextStyle(fontSize: 12, color: Colors.white70, fontWeight: FontWeight.w700)),
           const SizedBox(height: 8),
           Row(
             children: [
-              Icon(Icons.insert_chart_outlined_rounded, color: color),
+              Container(
+                width: 28,
+                height: 28,
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.18),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(Icons.insert_chart_outlined_rounded, color: Colors.white, size: 18),
+              ),
               const SizedBox(width: 8),
-              Text(value, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
+              Text(value, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w900, color: Colors.white)),
             ],
           ),
         ],
@@ -1072,51 +1261,64 @@ class _ReportRow extends StatelessWidget {
         : AppLocalizations.of(context).t('not_synced');
     final bgColor = synced ? const Color(0xFF22C55E) : const Color(0xFFEF4444);
 
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: [
-        // Left texts
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                dateTime,
-                style: const TextStyle(
-                  fontSize: 15,
-                  color: Colors.black87,
-                  fontWeight: FontWeight.w600,
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(colors: [
+          bgColor.withOpacity(0.30),
+          bgColor.withOpacity(0.18),
+        ]),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: bgColor.withOpacity(0.60)),
+        boxShadow: const [BoxShadow(color: Color(0x14000000), blurRadius: 8, offset: Offset(0, 2))],
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          // Left texts
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  dateTime,
+                  style: const TextStyle(
+                    fontSize: 15,
+                    color: Colors.black87,
+                    fontWeight: FontWeight.w700,
+                  ),
                 ),
-              ),
-              const SizedBox(height: 6),
-              Text(
-                subText,
-                style: TextStyle(
-                  fontSize: 13,
-                  color: cs.primary,
-                  fontWeight: FontWeight.w500,
+                const SizedBox(height: 6),
+                Text(
+                  subText,
+                  style: const TextStyle(
+                    fontSize: 13,
+                    color: Colors.black87,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
-              ),
-            ],
-          ),
-        ),
-        // Right status pill
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-          decoration: BoxDecoration(
-            color: bgColor,
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: Text(
-            label,
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
+              ],
             ),
           ),
-        ),
-      ],
+          // Right status pill
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+            decoration: BoxDecoration(
+              color: bgColor,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Text(
+              label,
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

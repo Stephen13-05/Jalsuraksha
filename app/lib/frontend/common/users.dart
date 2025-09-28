@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:app/frontend/ashaworkers/signup.dart';
 import 'package:app/frontend/Localclincs/Signup.dart';
-import 'package:app/l10n/app_localizations.dart';
-import 'package:app/locale/locale_controller.dart';
+import 'package:app/frontend/villagers/signup.dart';
 
 class UserSelectionPage extends StatefulWidget {
   const UserSelectionPage({Key? key}) : super(key: key);
@@ -52,28 +51,46 @@ class _UserSelectionPageState extends State<UserSelectionPage> {
             mainAxisAlignment: MainAxisAlignment.start,
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              Image.asset('assets/images/logo.png', height: 120),
-              const SizedBox(height: 10),
-              Text(t('app_name'),
-                  style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Color(0xFF0A4B6B))),
-              const SizedBox(height: 30),
-              Text(t('tagline_preventing'),
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(fontSize: 16, color: Color(0xFF5A7A8A))),
-              const SizedBox(height: 40),
-              SizedBox(
-                width: 360,
-                child: _buildUserCard(
-                  context,
-                  icon: Icons.shield_outlined,
-                  title: t('role_asha_workers'),
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => const AshaWorkerSignUpPage()),
-                    );
-                  },
+              const SizedBox(height: 12),
+              Center(
+                child: Container(
+                  width: 140,
+                  height: 140,
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(24),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.06),
+                        blurRadius: 16,
+                        spreadRadius: 2,
+                      ),
+                    ],
+                  ),
+                  padding: const EdgeInsets.all(16),
+                  child: Image.asset(
+                    'assets/images/logo.png',
+                    fit: BoxFit.contain,
+                    errorBuilder: (context, error, stackTrace) {
+                      return const Icon(Icons.water_drop, color: Color(0xFF0EA5E9), size: 72);
+                    },
+                  ),
                 ),
+              ),
+              const SizedBox(height: 24),
+              const Text('Choose Your Role',
+                  style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Color(0xFF0A4B6B))),
+              const SizedBox(height: 20),
+              _buildUserCard(
+                context,
+                icon: Icons.shield_outlined,
+                title: 'Asha Workers',
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const AshaWorkerSignUpPage()),
+                  );
+                },
               ),
               const SizedBox(height: 20),
               SizedBox(
@@ -91,20 +108,21 @@ class _UserSelectionPageState extends State<UserSelectionPage> {
                 ),
               ),
               const SizedBox(height: 20),
-              SizedBox(
-                width: 360,
-                child: _buildUserCard(
-                  context,
-                  icon: Icons.groups_outlined,
-                  title: t('role_ngos'),
-                  onTap: () {},
-                ),
+              _buildUserCard(
+                context,
+                icon: Icons.groups_outlined,
+                title: 'Villagers',
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const VillagerSignUpPage()),
+                  );
+                },
               ),
               const Spacer(),
               TextButton(
                 onPressed: () {},
-                child: Text(t('contact_support'),
-                    style: TextStyle(fontSize: 16, color: Theme.of(context).colorScheme.primary, fontWeight: FontWeight.w600)),
+                child: const Text('Contact Support'),
               ),
             ],
           ),

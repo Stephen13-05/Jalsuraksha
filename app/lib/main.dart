@@ -1,13 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'frontend/ashaworkers/login.dart';
-import 'frontend/ashaworkers/signup.dart';
 import 'l10n/app_localizations.dart';
 import 'locale/locale_controller.dart';
 import 'firebase_options.dart';
 import 'frontend/common/users.dart';
+import 'frontend/common/splash_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -116,67 +114,9 @@ class MyApp extends StatelessWidget {
             ),
             dividerColor: const Color(0xFFE5E7EB),
           ),
-          home: const UserSelectionPage(),
+          home: const SplashScreen(),
         );
       },
-    );
-  }
-}
-
-class _SplashScreen extends StatefulWidget {
-  const _SplashScreen({Key? key}) : super(key: key);
-
-  @override
-  State<_SplashScreen> createState() => _SplashScreenState();
-}
-
-class _SplashScreenState extends State<_SplashScreen> {
-  @override
-  void initState() {
-    super.initState();
-    _navigate();
-  }
-
-  Future<void> _navigate() async {
-    await Future.delayed(const Duration(seconds: 2));
-    final prefs = await SharedPreferences.getInstance();
-    final isReturning = prefs.getBool('isReturningUser') ?? false;
-    if (!mounted) return;
-    Navigator.of(context).pushReplacement(
-      MaterialPageRoute(
-        builder: (_) => isReturning
-            ? const AshaWorkerLoginPage()
-            : const AshaWorkerSignUpPage(),
-      ),
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    const softMint = Color(0xFFEAFBF6);
-    return Scaffold(
-      backgroundColor: softMint,
-      body: Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: const [
-            // App Logo
-            SizedBox(
-              height: 180,
-              child: Image(
-                image: AssetImage('assets/images/logo.png'),
-                fit: BoxFit.contain,
-              ),
-            ),
-            SizedBox(height: 16),
-            SizedBox(
-              width: 32,
-              height: 32,
-              child: CircularProgressIndicator(strokeWidth: 3.5),
-            ),
-          ],
-        ),
-      ),
     );
   }
 }

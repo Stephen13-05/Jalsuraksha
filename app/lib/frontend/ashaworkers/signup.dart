@@ -244,16 +244,8 @@ class _AshaWorkerSignUpPageState extends State<AshaWorkerSignUpPage> {
   Widget _boxedField({
     required Widget child,
   }) {
-    return Container(
-      decoration: BoxDecoration(
-        color: const Color(0xFFF1F5F9),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      height: 56,
-      padding: const EdgeInsets.symmetric(horizontal: 4),
-      alignment: Alignment.center,
-      child: child,
-    );
+    // Removed surrounding box styling per design request; render fields plainly
+    return child;
   }
 
   @override
@@ -268,51 +260,51 @@ class _AshaWorkerSignUpPageState extends State<AshaWorkerSignUpPage> {
         centerTitle: true,
       ),
       body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              // Language selector (same as login)
-              Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  PopupMenuButton<String>(
-                    icon: const Icon(Icons.public, size: 20, color: Colors.black54),
-                    onSelected: (code) {
-                      switch (code) {
-                        case 'ne':
-                        case 'en':
-                        case 'as':
-                        case 'hi':
-                          LocaleController.instance.setLocale(Locale(code));
-                          break;
-                      }
-                    },
-                    itemBuilder: (context) => const [
-                      PopupMenuItem(value: 'ne', child: Text('Nepali')),
-                      PopupMenuItem(value: 'en', child: Text('English')),
-                      PopupMenuItem(value: 'as', child: Text('Assamese')),
-                      PopupMenuItem(value: 'hi', child: Text('Hindi')),
-                    ],
-                  ),
-                ],
-              ),
-              const SizedBox(height: 12),
-              // Static Logo at top
-              const Center(
-                child: SizedBox(
-                  height: 150,
-                  child: Image(
-                    image: AssetImage('assets/images/logo.png'),
+        child: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                // Language selector (same as login)
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    PopupMenuButton<String>(
+                      icon: const Icon(Icons.public, size: 20, color: Colors.black54),
+                      onSelected: (code) {
+                        switch (code) {
+                          case 'ne':
+                          case 'en':
+                          case 'as':
+                          case 'hi':
+                            LocaleController.instance.setLocale(Locale(code));
+                            break;
+                        }
+                      },
+                      itemBuilder: (context) => const [
+                        PopupMenuItem(value: 'ne', child: Text('Nepali')),
+                        PopupMenuItem(value: 'en', child: Text('English')),
+                        PopupMenuItem(value: 'as', child: Text('Assamese')),
+                        PopupMenuItem(value: 'hi', child: Text('Hindi')),
+                      ],
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                // Static Logo at top (no box)
+                Center(
+                  child: Image.asset(
+                    'assets/images/logo.png',
+                    width: 140,
+                    height: 140,
                     fit: BoxFit.contain,
                   ),
                 ),
-              ),
-              const SizedBox(height: 8),
-              // Scrollable form below logo
-              Expanded(
-                child: SingleChildScrollView(
+                const SizedBox(height: 16),
+                // Plain form (no outer card)
+                Padding(
+                  padding: const EdgeInsets.all(0),
                   child: Form(
                     key: _formKey,
                     autovalidateMode: AutovalidateMode.onUserInteraction,
@@ -409,6 +401,11 @@ class _AshaWorkerSignUpPageState extends State<AshaWorkerSignUpPage> {
                               return null;
                             },
                           ),
+                        ),
+                        const SizedBox(height: 6),
+                        const Text(
+                          'Use exactly 10 characters with at least 1 uppercase and 1 special character',
+                          style: TextStyle(color: Color(0xFF6B7280), fontSize: 12),
                         ),
                         const SizedBox(height: 12),
 
@@ -508,9 +505,9 @@ class _AshaWorkerSignUpPageState extends State<AshaWorkerSignUpPage> {
                           child: ElevatedButton(
                             onPressed: _isLoading ? null : _submit,
                             style: ElevatedButton.styleFrom(
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(14),
-                              ),
+                              padding: const EdgeInsets.symmetric(vertical: 14),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                              elevation: 0,
                             ),
                             child: _isLoading
                                 ? const SizedBox(
@@ -542,7 +539,7 @@ class _AshaWorkerSignUpPageState extends State<AshaWorkerSignUpPage> {
                                       MaterialPageRoute(builder: (_) => const AshaWorkerLoginPage()),
                                     ),
                             style: TextButton.styleFrom(
-                              padding: EdgeInsets.zero,
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
                               minimumSize: const Size(0, 0),
                               tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                             ),
@@ -550,7 +547,7 @@ class _AshaWorkerSignUpPageState extends State<AshaWorkerSignUpPage> {
                               AppLocalizations.of(context).t('back_to_login'),
                               style: const TextStyle(
                                 fontSize: 14,
-                                color: Colors.black87,
+                                color: Color(0xFF0369A1),
                               ),
                             ),
                           ),
@@ -559,8 +556,9 @@ class _AshaWorkerSignUpPageState extends State<AshaWorkerSignUpPage> {
                     ),
                   ),
                 ),
-              ),
-            ],
+                const SizedBox(height: 8),
+              ],
+            ),
           ),
         ),
       ),

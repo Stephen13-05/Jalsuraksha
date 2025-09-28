@@ -4,11 +4,13 @@ import 'package:app/locale/locale_controller.dart';
 import 'package:app/frontend/ashaworkers/home.dart';
 import 'package:app/frontend/ashaworkers/reports.dart';
 import 'package:app/frontend/ashaworkers/data_collection.dart';
-import 'package:app/frontend/ashaworkers/analytics.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:app/services/asha_auth_service.dart';
 import 'package:app/frontend/ashaworkers/login.dart';
+import 'package:app/frontend/ashaworkers/navigation.dart';
+import 'package:app/frontend/ashaworkers/bluetooth_sync.dart';
+import 'package:app/frontend/ashaworkers/offline_sync.dart';
 
 class AshaWorkerProfilePage extends StatefulWidget {
   const AshaWorkerProfilePage({super.key});
@@ -18,7 +20,7 @@ class AshaWorkerProfilePage extends StatefulWidget {
 }
 
 class _AshaWorkerProfilePageState extends State<AshaWorkerProfilePage> {
-  int _currentIndex = 4;
+  AshaNavTab _currentTab = AshaNavTab.profile;
   String? _uid;
   Map<String, dynamic>? _user;
   bool _loading = true;
@@ -58,22 +60,63 @@ class _AshaWorkerProfilePageState extends State<AshaWorkerProfilePage> {
     final t = AppLocalizations.of(context).t;
 
     final cs = Theme.of(context).colorScheme;
+    final name = (_user?['name'] ?? 'ASHA Worker').toString();
+    final initials = name.trim().isEmpty
+        ? 'AW'
+        : name.trim().split(RegExp(r'\s+')).take(2).map((e) => e.substring(0, 1).toUpperCase()).join();
+
     return Scaffold(
       appBar: AppBar(
         elevation: 0,
-        centerTitle: true,
+        backgroundColor: Colors.transparent,
+        flexibleSpace: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [
+                Theme.of(context).colorScheme.primary,
+                Theme.of(context).colorScheme.primary.withOpacity(0.85),
+              ],
+            ),
+          ),
+        ),
+        iconTheme: const IconThemeData(color: Colors.white),
+        leading: Builder(
+          builder: (ctx) => IconButton(
+            icon: const Icon(Icons.menu),
+            onPressed: () => Scaffold.of(ctx).openDrawer(),
+          ),
+        ),
         title: Text(
           t('profile_title'),
           style: const TextStyle(
             fontWeight: FontWeight.w600,
+            color: Colors.white,
           ),
         ),
-        actions: const [
-          Padding(
-            padding: EdgeInsets.only(right: 16),
-            child: Icon(Icons.settings_outlined),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.edit_outlined, color: Colors.white),
+            onPressed: () {
+              if (_uid == null) return;
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (_) => _EditProfilePage(
+                    uid: _uid!,
+                    initial: _user ?? const {},
+                  ),
+                ),
+              );
+            },
           ),
+          const SizedBox(width: 8),
         ],
+      ),
+      drawer: AshaNavDrawer(
+        currentTab: _currentTab,
+        onSelectTab: _handleNavSelection,
+        onBluetoothSync: _openBluetoothSync,
+        onOfflineSync: _openOfflineSync,
+        onChangeLanguage: () => showLanguagePicker(context),
       ),
       body: _loading ? const Center(child: CircularProgressIndicator()) : ListView(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -81,13 +124,21 @@ class _AshaWorkerProfilePageState extends State<AshaWorkerProfilePage> {
           const SizedBox(height: 12),
           // Avatar
           Center(
-            child: CircleAvatar(
-              radius: 44,
-              backgroundColor: cs.surfaceVariant,
-              backgroundImage: const NetworkImage(
-                'https://images.unsplash.com/photo-1550525811-e5869dd03032?q=80&w=200&auto=format&fit=crop',
+            child: Container(
+              width: 100,
+              height: 100,
+              decoration: BoxDecoration(
+                gradient: LinearGradient(colors: [cs.primary, cs.secondaryContainer]),
+                borderRadius: BorderRadius.circular(24),
+                boxShadow: const [
+                  BoxShadow(color: Color(0x22000000), blurRadius: 12, offset: Offset(0, 6)),
+                ],
               ),
-              onBackgroundImageError: (_, __) {},
+              alignment: Alignment.center,
+              child: Text(
+                initials,
+                style: const TextStyle(fontSize: 32, fontWeight: FontWeight.w800, color: Colors.white),
+              ),
             ),
           ),
           const SizedBox(height: 16),
@@ -262,50 +313,48 @@ class _AshaWorkerProfilePageState extends State<AshaWorkerProfilePage> {
           const SizedBox(height: 24),
         ],
       ),
+    );
+  }
 
-      // Bottom Navigation (5 tabs)
-      bottomNavigationBar: Container(
-        decoration: const BoxDecoration(
-          border: Border(top: BorderSide(color: Color(0xFFE5E7EB))),
-        ),
-        child: BottomNavigationBar(
-          currentIndex: _currentIndex,
-          onTap: (i) {
-            setState(() => _currentIndex = i);
-            if (i == 0) {
-              Navigator.of(context).pushAndRemoveUntil(
-                MaterialPageRoute(builder: (_) => const AshaWorkerHomePage()),
-                (route) => false,
-              );
-            } else if (i == 1) {
-              Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (_) => const AshaWorkerDataCollectionPage(),
-                ),
-              );
-            } else if (i == 2) {
-              Navigator.of(context).push(
-                MaterialPageRoute(builder: (_) => const AshaWorkerReportsPage()),
-              );
-            } else if (i == 3) {
-              Navigator.of(context).push(
-                MaterialPageRoute(builder: (_) => const AshaWorkerAnalyticsPage()),
-              );
-            }
-          },
-          type: BottomNavigationBarType.fixed,
-          selectedItemColor: cs.primary,
-          unselectedItemColor: const Color(0xFF9CA3AF),
-          showUnselectedLabels: true,
-          items: [
-            BottomNavigationBarItem(icon: const Icon(Icons.home_rounded), label: t('nav_home_title')),
-            BottomNavigationBarItem(icon: const Icon(Icons.fact_check_outlined), label: t('nav_data_collection')),
-            BottomNavigationBarItem(icon: const Icon(Icons.receipt_long_outlined), label: t('nav_reports')),
-            BottomNavigationBarItem(icon: const Icon(Icons.insert_chart_outlined), label: t('nav_analytics')),
-            BottomNavigationBarItem(icon: const Icon(Icons.person_outline_rounded), label: t('nav_profile')),
-          ],
-        ),
-      ),
+  void _handleNavSelection(AshaNavTab tab) {
+    if (tab == _currentTab) return;
+    switch (tab) {
+      case AshaNavTab.home:
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (_) => const AshaWorkerHomePage()),
+        );
+        break;
+      case AshaNavTab.dataCollection:
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (_) => const AshaWorkerDataCollectionPage()),
+        );
+        break;
+      case AshaNavTab.reports:
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (_) => const AshaWorkerReportsPage()),
+        );
+        break;
+      case AshaNavTab.profile:
+        setState(() => _currentTab = AshaNavTab.profile);
+        break;
+    }
+  }
+
+  void _openBluetoothSync() {
+    Navigator.of(context).push(
+      MaterialPageRoute(builder: (_) => const AshaWorkerBluetoothSyncPage()),
+    );
+  }
+
+  void _openOfflineSync() {
+    Navigator.of(context).push(
+      MaterialPageRoute(builder: (_) => const AshaWorkerOfflineSyncPage()),
+    );
+  }
+
+  void _showSnack(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message)),
     );
   }
 }

@@ -5,7 +5,9 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:app/frontend/ashaworkers/home.dart';
 import 'package:app/frontend/ashaworkers/data_collection.dart';
 import 'package:app/frontend/ashaworkers/profile.dart';
-import 'package:app/frontend/ashaworkers/analytics.dart';
+import 'package:app/frontend/ashaworkers/navigation.dart';
+import 'package:app/frontend/ashaworkers/bluetooth_sync.dart';
+import 'package:app/frontend/ashaworkers/offline_sync.dart';
 
 class AshaWorkerReportsPage extends StatefulWidget {
   const AshaWorkerReportsPage({super.key});
@@ -43,7 +45,7 @@ String _month(int m) {
 }
 
 class _AshaWorkerReportsPageState extends State<AshaWorkerReportsPage> {
-  int _currentIndex = 2;
+  AshaNavTab _currentTab = AshaNavTab.reports;
 
   @override
   Widget build(BuildContext context) {
@@ -55,27 +57,62 @@ class _AshaWorkerReportsPageState extends State<AshaWorkerReportsPage> {
       child: Scaffold(
         appBar: AppBar(
           elevation: 0,
-          centerTitle: true,
-          title: Text(t('my_reports'), style: const TextStyle(fontWeight: FontWeight.w700)),
-          bottom: PreferredSize(
-            preferredSize: const Size.fromHeight(44),
-            child: Container(
-              color: cs.primary,
-              alignment: Alignment.centerLeft,
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: TabBar(
-                labelColor: Colors.white,
-                unselectedLabelColor: Colors.white70,
-                indicatorColor: Colors.white,
-                labelStyle: const TextStyle(fontWeight: FontWeight.w700),
-                tabs: [
-                  Tab(text: t('tab_today')),
-                  Tab(text: t('tab_this_week')),
-                  Tab(text: t('tab_this_month')),
+          flexibleSpace: Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [
+                  cs.primary,
+                  cs.primary.withOpacity(0.85),
                 ],
               ),
             ),
           ),
+          iconTheme: const IconThemeData(color: Colors.white),
+          leading: Builder(
+            builder: (ctx) => IconButton(
+              icon: const Icon(Icons.menu),
+              onPressed: () => Scaffold.of(ctx).openDrawer(),
+            ),
+          ),
+          title: Text(
+            t('my_reports'),
+            style: const TextStyle(fontWeight: FontWeight.w700, color: Colors.white),
+          ),
+          bottom: PreferredSize(
+            preferredSize: const Size.fromHeight(64),
+            child: Container(
+              width: double.infinity,
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'View analytics by timeframe',
+                    style: const TextStyle(color: Colors.white70, fontSize: 12),
+                  ),
+                  const SizedBox(height: 8),
+                  TabBar(
+                    labelColor: Colors.white,
+                    unselectedLabelColor: Colors.white70,
+                    indicatorColor: Colors.white,
+                    labelStyle: const TextStyle(fontWeight: FontWeight.w700),
+                    tabs: [
+                      Tab(text: t('tab_today')),
+                      Tab(text: t('tab_this_week')),
+                      Tab(text: t('tab_this_month')),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+        drawer: AshaNavDrawer(
+          currentTab: _currentTab,
+          onSelectTab: _handleNavSelection,
+          onBluetoothSync: _openBluetoothSync,
+          onOfflineSync: _openOfflineSync,
+          onChangeLanguage: () => showLanguagePicker(context),
         ),
         body: const TabBarView(
           children: [
@@ -84,47 +121,94 @@ class _AshaWorkerReportsPageState extends State<AshaWorkerReportsPage> {
             _ReportTab(period: _Period.month),
           ],
         ),
-        bottomNavigationBar: Container(
-          decoration: const BoxDecoration(
-            border: Border(top: BorderSide(color: Color(0xFFE5E7EB))),
-          ),
-          child: BottomNavigationBar(
-            currentIndex: _currentIndex,
-            onTap: (i) {
-              setState(() => _currentIndex = i);
-              if (i == 0) {
-                Navigator.of(context).pushAndRemoveUntil(
-                  MaterialPageRoute(builder: (_) => const AshaWorkerHomePage()),
-                  (route) => false,
-                );
-              } else if (i == 1) {
-                Navigator.of(context).push(
-                  MaterialPageRoute(builder: (_) => const AshaWorkerDataCollectionPage()),
-                );
-              } else if (i == 3) {
-                Navigator.of(context).push(
-                  MaterialPageRoute(builder: (_) => const AshaWorkerAnalyticsPage()),
-                );
-              } else if (i == 4) {
-                Navigator.of(context).push(
-                  MaterialPageRoute(builder: (_) => const AshaWorkerProfilePage()),
-                );
-              }
+        floatingActionButton: SizedBox(
+          height: 60,
+          width: 60,
+          child: FloatingActionButton(
+            heroTag: 'reports_fab',
+            onPressed: () {
+              showModalBottomSheet(
+                context: context,
+                shape: const RoundedRectangleBorder(
+                  borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+                ),
+                builder: (ctx) => SafeArea(
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        ListTile(
+                          leading: const Icon(Icons.file_download_outlined),
+                          title: const Text('Export summary'),
+                          onTap: () {
+                            Navigator.pop(ctx);
+                            _showSnack('Export coming soon');
+                          },
+                        ),
+                        ListTile(
+                          leading: const Icon(Icons.share_outlined),
+                          title: const Text('Share latest report'),
+                          onTap: () {
+                            Navigator.pop(ctx);
+                            _showSnack('Share coming soon');
+                          },
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              );
             },
-            type: BottomNavigationBarType.fixed,
-            selectedItemColor: cs.primary,
-            unselectedItemColor: const Color(0xFF9CA3AF),
-            showUnselectedLabels: true,
-            items: [
-              BottomNavigationBarItem(icon: const Icon(Icons.home_rounded), label: t('nav_home_title')),
-              BottomNavigationBarItem(icon: const Icon(Icons.fact_check_outlined), label: t('nav_data_collection')),
-              BottomNavigationBarItem(icon: const Icon(Icons.receipt_long_outlined), label: t('nav_reports')),
-              BottomNavigationBarItem(icon: const Icon(Icons.insert_chart_outlined), label: t('nav_analytics')),
-              BottomNavigationBarItem(icon: const Icon(Icons.person_outline_rounded), label: t('nav_profile')),
-            ],
+            backgroundColor: cs.primary,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            child: const Icon(Icons.assignment_outlined, color: Colors.white),
           ),
         ),
+        floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
       ),
+    );
+  }
+
+  void _handleNavSelection(AshaNavTab tab) {
+    if (tab == _currentTab) return;
+    switch (tab) {
+      case AshaNavTab.home:
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (_) => const AshaWorkerHomePage()),
+        );
+        break;
+      case AshaNavTab.dataCollection:
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (_) => const AshaWorkerDataCollectionPage()),
+        );
+        break;
+      case AshaNavTab.reports:
+        setState(() => _currentTab = AshaNavTab.reports);
+        break;
+      case AshaNavTab.profile:
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (_) => const AshaWorkerProfilePage()),
+        );
+        break;
+    }
+  }
+
+  void _openBluetoothSync() {
+    Navigator.of(context).push(
+      MaterialPageRoute(builder: (_) => const AshaWorkerBluetoothSyncPage()),
+    );
+  }
+
+  void _openOfflineSync() {
+    Navigator.of(context).push(
+      MaterialPageRoute(builder: (_) => const AshaWorkerOfflineSyncPage()),
+    );
+  }
+
+  void _showSnack(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message)),
     );
   }
 }

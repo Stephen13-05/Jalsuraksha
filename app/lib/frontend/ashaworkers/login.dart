@@ -123,12 +123,9 @@ class _AshaWorkerLoginPageState extends State<AshaWorkerLoginPage> {
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 24.0),
-          child: Form(
-            key: _formKey,
-            autovalidateMode: AutovalidateMode.onUserInteraction,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
                 // Top-right language selector
                 Row(
                   mainAxisAlignment: MainAxisAlignment.end,
@@ -149,202 +146,214 @@ class _AshaWorkerLoginPageState extends State<AshaWorkerLoginPage> {
                         PopupMenuItem(value: 'ne', child: Text('Nepali')),
                         PopupMenuItem(value: 'en', child: Text('English')),
                         PopupMenuItem(value: 'as', child: Text('Assamese')),
-                        PopupMenuItem(value: 'hi', child: Text('Hindi')),
                       ],
                     ),
                   ],
                 ),
                 const SizedBox(height: 8),
-                // Centered Logo
-                const SizedBox(height: 16),
-                const Center(
-                  child: SizedBox(
-                    height: 150,
-                    child: Image(
-                      image: AssetImage('assets/images/logo.png'),
-                      fit: BoxFit.contain,
-                    ),
+              // Centered Logo (no box)
+              const Center(
+                child: SizedBox(
+                  width: 140,
+                  height: 140,
+                  child: Image(
+                    image: AssetImage('assets/images/logo.png'),
+                    fit: BoxFit.contain,
                   ),
                 ),
-                const SizedBox(height: 12),
-                // Headline
-                Center(
-                  child: Text(
-                    AppLocalizations.of(context).t('title_welcome'),
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.w700,
-                      color: Colors.black87,
-                    ),
+              ),
+              const SizedBox(height: 16),
+              // Headline and subtitle
+              Center(
+                child: Text(
+                  AppLocalizations.of(context).t('title_welcome'),
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.w700,
+                    color: Colors.black87,
                   ),
                 ),
-                const SizedBox(height: 8),
-                Center(
-                  child: Text(
-                    AppLocalizations.of(context).t('subtitle_login'),
-                    textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 6),
+              Center(
+                child: Text(
+                  AppLocalizations.of(context).t('subtitle_login'),
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w400,
+                    color: Color(0xFF6B7280),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+              // Plain form (no outer card)
+              Padding(
+                padding: const EdgeInsets.all(0),
+                child: Form(
+                  key: _formKey,
+                  autovalidateMode: AutovalidateMode.onUserInteraction,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                        // Phone Number Field
+                        TextFormField(
+                          controller: _phoneController,
+                          keyboardType: TextInputType.phone,
+                          inputFormatters: [
+                            FilteringTextInputFormatter.digitsOnly,
+                            LengthLimitingTextInputFormatter(10),
+                          ],
+                          style: const TextStyle(fontSize: 16),
+                          decoration: InputDecoration(
+                            hintText: AppLocalizations.of(context).t('hint_phone'),
+                            hintStyle: const TextStyle(color: Color(0xFF9CA3AF), fontSize: 16),
+                            prefixIcon: const Icon(Icons.phone_outlined, color: Color(0xFF9CA3AF), size: 22),
+                            contentPadding: const EdgeInsets.symmetric(vertical: 18, horizontal: 16),
+                          ),
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return AppLocalizations.of(context).t('phone_empty');
+                            }
+                            if (!_isValidPhone(value)) {
+                              return AppLocalizations.of(context).t('phone_invalid');
+                            }
+                            return null;
+                          },
+                        ),
+                        const SizedBox(height: 16),
+                        // Password Field
+                        TextFormField(
+                          controller: _passwordController,
+                          obscureText: _obscurePassword,
+                          inputFormatters: [
+                            LengthLimitingTextInputFormatter(10),
+                          ],
+                          style: const TextStyle(fontSize: 16),
+                          decoration: InputDecoration(
+                            hintText: AppLocalizations.of(context).t('hint_password'),
+                            hintStyle: const TextStyle(color: Color(0xFF9CA3AF), fontSize: 16),
+                            prefixIcon: const Icon(Icons.lock_outline_rounded, color: Color(0xFF9CA3AF), size: 22),
+                            suffixIcon: IconButton(
+                              icon: Icon(
+                                _obscurePassword ? Icons.visibility_off : Icons.visibility,
+                                color: const Color(0xFF9CA3AF),
+                                size: 22,
+                              ),
+                              onPressed: () {
+                                setState(() {
+                                  _obscurePassword = !_obscurePassword;
+                                });
+                              },
+                            ),
+                            contentPadding: const EdgeInsets.symmetric(vertical: 18, horizontal: 16),
+                          ),
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return AppLocalizations.of(context).t('password_empty');
+                            }
+                            final hasUpper = value.contains(RegExp(r'[A-Z]'));
+                            final hasSpecial = value.contains(RegExp(r'[!@#\$%^&*(),.?":{}|<>_\-]'));
+                            if (value.length != 10 || !hasUpper || !hasSpecial) {
+                              return 'Password must be exactly 10 characters, include at least one uppercase letter and one special character';
+                            }
+                            return null;
+                          },
+                        ),
+                        const SizedBox(height: 12),
+                        // Forgot Password link
+                        Align(
+                          alignment: Alignment.centerLeft,
+                          child: TextButton(
+                            onPressed: _isLoading ? null : () {},
+                            style: TextButton.styleFrom(
+                              padding: EdgeInsets.zero,
+                              minimumSize: const Size(0, 0),
+                              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                            ),
+                            child: Text(
+                              AppLocalizations.of(context).t('forgot_password'),
+                              style: const TextStyle(
+                                fontSize: 14,
+                                color: Colors.black87,
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        // Login Button
+                        SizedBox(
+                          width: double.infinity,
+                          height: 54,
+                          child: ElevatedButton(
+                            onPressed: _isLoading ? null : _login,
+                            style: ElevatedButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(vertical: 14),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                              elevation: 0,
+                            ),
+                            child: _isLoading
+                                ? const SizedBox(
+                                    width: 24,
+                                    height: 24,
+                                    child: CircularProgressIndicator(
+                                      color: Colors.white,
+                                      strokeWidth: 2,
+                                    ),
+                                  )
+                                : Text(
+                                    AppLocalizations.of(context).t('login'),
+                                    style: const TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w600,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+              ),
+              const SizedBox(height: 16),
+              // Bottom Sign Up prompt
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    AppLocalizations.of(context).t('no_account'),
                     style: const TextStyle(
                       fontSize: 14,
-                      fontWeight: FontWeight.w400,
                       color: Color(0xFF6B7280),
                     ),
                   ),
-                ),
-                const SizedBox(height: 28),
-                // Phone Number Field (prefix icon on the left)
-                TextFormField(
-                  controller: _phoneController,
-                  keyboardType: TextInputType.phone,
-                  inputFormatters: [
-                    FilteringTextInputFormatter.digitsOnly,
-                    LengthLimitingTextInputFormatter(10),
-                  ],
-                  style: const TextStyle(fontSize: 16),
-                  decoration: InputDecoration(
-                    hintText: AppLocalizations.of(context).t('hint_phone'),
-                    hintStyle: const TextStyle(color: Color(0xFF9CA3AF), fontSize: 16),
-                    prefixIcon: const Icon(Icons.phone_outlined, color: Color(0xFF9CA3AF), size: 22),
-                    contentPadding: const EdgeInsets.symmetric(vertical: 18, horizontal: 16),
-                  ),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return AppLocalizations.of(context).t('phone_empty');
-                    }
-                    if (!_isValidPhone(value)) {
-                      return AppLocalizations.of(context).t('phone_invalid');
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 16),
-                // Password Field (filled, rounded, suffix icon)
-                TextFormField(
-                  controller: _passwordController,
-                  obscureText: _obscurePassword,
-                  inputFormatters: [
-                    LengthLimitingTextInputFormatter(10),
-                  ],
-                  style: const TextStyle(fontSize: 16),
-                  decoration: InputDecoration(
-                    hintText: AppLocalizations.of(context).t('hint_password'),
-                    hintStyle: const TextStyle(color: Color(0xFF9CA3AF), fontSize: 16),
-                    prefixIcon: const Icon(Icons.lock_outline_rounded, color: Color(0xFF9CA3AF), size: 22),
-                    suffixIcon: IconButton(
-                      icon: Icon(
-                        _obscurePassword ? Icons.visibility_off : Icons.visibility,
-                        color: const Color(0xFF9CA3AF),
-                        size: 22,
-                      ),
-                      onPressed: () {
-                        setState(() {
-                          _obscurePassword = !_obscurePassword;
-                        });
-                      },
-                    ),
-                    contentPadding: const EdgeInsets.symmetric(vertical: 18, horizontal: 16),
-                  ),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return AppLocalizations.of(context).t('password_empty');
-                    }
-                    final hasUpper = value.contains(RegExp(r'[A-Z]'));
-                    final hasSpecial = value.contains(RegExp(r'[!@#\$%^&*(),.?":{}|<>_\-]'));
-                    if (value.length != 10 || !hasUpper || !hasSpecial) {
-                      return 'Password must be exactly 10 characters, include at least one uppercase letter and one special character';
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 12),
-                // Forgot Password link
-                Align(
-                  alignment: Alignment.centerLeft,
-                  child: TextButton(
-                    onPressed: _isLoading ? null : () {},
-                    style: TextButton.styleFrom(
-                      padding: EdgeInsets.zero,
-                      minimumSize: const Size(0, 0),
-                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                    ),
+                  GestureDetector(
+                    onTap: _isLoading
+                        ? null
+                        : () {
+                            Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (_) => const AshaWorkerSignUpPage(),
+                              ),
+                            );
+                          },
                     child: Text(
-                      AppLocalizations.of(context).t('forgot_password'),
+                      AppLocalizations.of(context).t('sign_up'),
                       style: const TextStyle(
                         fontSize: 14,
+                        fontWeight: FontWeight.w600,
                         color: Colors.black87,
                       ),
                     ),
                   ),
-                ),
-                const SizedBox(height: 8),
-                // Login Button
-                SizedBox(
-                  width: double.infinity,
-                  height: 54,
-                  child: ElevatedButton(
-                    onPressed: _isLoading ? null : _login,
-                    style: ElevatedButton.styleFrom(
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(14),
-                      ),
-                    ),
-                    child: _isLoading
-                        ? const SizedBox(
-                            width: 24,
-                            height: 24,
-                            child: CircularProgressIndicator(
-                              color: Colors.white,
-                              strokeWidth: 2,
-                            ),
-                          )
-                        : Text(
-                            AppLocalizations.of(context).t('login'),
-                            style: const TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w600,
-                              color: Colors.white,
-                            ),
-                          ),
-                  ),
-                ),
-                const SizedBox(height: 16),
-                // Bottom Sign Up prompt
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      AppLocalizations.of(context).t('no_account'),
-                      style: const TextStyle(
-                        fontSize: 14,
-                        color: Color(0xFF6B7280),
-                      ),
-                    ),
-                    GestureDetector(
-                      onTap: _isLoading
-                          ? null
-                          : () {
-                              Navigator.of(context).push(
-                                MaterialPageRoute(
-                                  builder: (_) => const AshaWorkerSignUpPage(),
-                                ),
-                              );
-                            },
-                      child: Text(
-                        AppLocalizations.of(context).t('sign_up'),
-                        style: const TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w600,
-                          color: Colors.black87,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
+                ],
+              ),
+            ],
           ),
         ),
       ),
     );
   }
 }
+
